@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 export default function HomePage() {
   const featuredListings = [
     {
@@ -7,6 +9,8 @@ export default function HomePage() {
       subtitle: "Terasa, parcare, aproape de UMF",
       price: "189.000 €",
       details: ["78 m²", "3 camere", "2 băi", "Et. 3/6"],
+      imageSrc: "/listings/apt-zorilor-3cam.svg",
+      imageAlt: "Apartament 3 camere în Zorilor, Cluj-Napoca",
     },
     {
       id: "casa-faget",
@@ -15,6 +19,8 @@ export default function HomePage() {
       subtitle: "Curte, intimitate, acces rapid spre oraș",
       price: "465.000 €",
       details: ["156 m² utili", "5 camere", "Teren 420 m²"],
+      imageSrc: "/listings/casa-faget.svg",
+      imageAlt: "Casă modernă în Făget, Cluj-Napoca",
     },
     {
       id: "apt-gheorgheni",
@@ -23,6 +29,8 @@ export default function HomePage() {
       subtitle: "Lângă Iulius Mall, finisaje premium",
       price: "142.500 €",
       details: ["56 m²", "2 camere", "Balcon", "Et. 5/10"],
+      imageSrc: "/listings/apt-gheorgheni.svg",
+      imageAlt: "Apartament 2 camere în Gheorgheni, Cluj-Napoca",
     },
     {
       id: "studio-marasti",
@@ -31,6 +39,8 @@ export default function HomePage() {
       subtitle: "Randament bun pentru închiriere",
       price: "94.900 €",
       details: ["32 m²", "1 cameră", "Renovat", "Et. 2/4"],
+      imageSrc: "/listings/studio-marasti.svg",
+      imageAlt: "Studio în Mărăști, Cluj-Napoca",
     },
     {
       id: "teren-someseni",
@@ -39,6 +49,8 @@ export default function HomePage() {
       subtitle: "Potrivit pentru casă / duplex",
       price: "129.000 €",
       details: ["620 m²", "Front 18 m", "Utilități la limită"],
+      imageSrc: "/listings/teren-someseni.svg",
+      imageAlt: "Teren intravilan în Someșeni, Cluj-Napoca",
     },
     {
       id: "penthouse-centru",
@@ -47,6 +59,8 @@ export default function HomePage() {
       subtitle: "Vedere panoramică, 2 terase, lift",
       price: "399.000 €",
       details: ["112 m²", "4 camere", "2 terase", "Ultimul etaj"],
+      imageSrc: "/listings/penthouse-centru.svg",
+      imageAlt: "Penthouse în Centru, Cluj-Napoca",
     },
   ] as const;
 
@@ -310,7 +324,15 @@ export default function HomePage() {
                 className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
               >
                 <div className="relative">
-                  <div className="h-40 bg-[linear-gradient(135deg,rgba(14,165,233,0.22),rgba(99,102,241,0.18))]" />
+                  <div className="relative h-44 bg-slate-100">
+                    <Image
+                      src={l.imageSrc}
+                      alt={l.imageAlt}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 33vw"
+                      className="object-cover"
+                    />
+                  </div>
                   <div className="absolute left-4 top-4 inline-flex items-center rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-800 shadow-sm">
                     {l.badge}
                   </div>
