@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Cas? modern? în F?get, Cluj-Napoca">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Cas&#259; modern&#259; &#238;n F&#259;get, Cluj-Napoca">
   <defs>
     <linearGradient id="bg" x1="0" x2="1" y1="1" y2="0">
       <stop offset="0" stop-color="#22c55e" stop-opacity="0.22"/>
@@ -51,10 +51,10 @@
   <!-- title -->
   <g transform="translate(780 305)" fill="#0f172a">
     <text x="0" y="0" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="42" font-weight="700">
-      Cas? modern? • F?get
+      Cas&#259; modern&#259; &#8226; F&#259;get
     </text>
     <text x="0" y="52" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="24" opacity="0.72">
-      curte • intimitate • acces rapid spre ora?
+      curte &#8226; intimitate &#8226; acces rapid spre ora&#351;
     </text>
     <g transform="translate(0 92)" opacity="0.75">
       <rect x="0" y="0" width="160" height="44" rx="22" fill="#22c55e" opacity="0.18"/>

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Teren intravilan în Some?eni, Cluj-Napoca">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-label="Teren intravilan &#238;n Some&#351;eni, Cluj-Napoca">
   <defs>
     <linearGradient id="bg" x1="0" x2="1" y1="1" y2="0">
       <stop offset="0" stop-color="#22c55e" stop-opacity="0.22"/>
@@ -35,15 +35,15 @@
   <!-- title -->
   <g transform="translate(820 315)" fill="#0f172a">
     <text x="0" y="0" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="42" font-weight="700">
-      Teren intravilan • Some?eni
+      Teren intravilan &#8226; Some&#351;eni
     </text>
     <text x="0" y="52" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="24" opacity="0.72">
-      620 m² • utilit??i la limit? • potrivit cas? / duplex
+      620 m&#178; &#8226; utilit&#259;&#539;i la limit&#259; &#8226; potrivit cas&#259; / duplex
     </text>
     <g transform="translate(0 92)" opacity="0.75">
       <rect x="0" y="0" width="180" height="44" rx="22" fill="#22c55e" opacity="0.18"/>
       <text x="20" y="30" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="18" font-weight="600" fill="#065f46">
-        Zon? lini?tit?
+        Zon&#259; lini&#351;tit&#259;
       </text>
     </g>
   </g>
