@@ -17,6 +17,13 @@ type ContactPayload = {
   source?: string;
 };
 
+class SmtpConfigError extends Error {
+  public readonly code = "SMTP_NOT_CONFIGURED" as const;
+  constructor() {
+    super("SMTP is not configured.");
+  }
+}
+
 function getEnv(name: string): string | undefined {
   const v = process.env[name];
   if (!v) return undefined;
@@ -38,9 +45,16 @@ function makeTransport() {
   const portRaw = getEnv("SMTP_PORT");
 
   if (!host || !user || !pass) {
-    throw new Error(
-      "Missing SMTP config. Please set SMTP_HOST, SMTP_USER, SMTP_PASS (and optionally SMTP_PORT).",
-    );
+    // In local/dev environments we allow submitting the form without SMTP
+    // by writing the generated email to the server logs (stream transport).
+    if (process.env.NODE_ENV !== "production") {
+      return nodemailer.createTransport({
+        streamTransport: true,
+        newline: "unix",
+        buffer: true,
+      });
+    }
+    throw new SmtpConfigError();
   }
 
   const port = portRaw ? Number(portRaw) : 465;
@@ -81,7 +95,9 @@ export async function POST(req: NextRequest) {
 
     const from =
       getEnv("SMTP_FROM") ??
-      (getEnv("SMTP_USER") ? `Sig Imobiliare Cluj <${getEnv("SMTP_USER")}>` : "Sig Imobiliare Cluj");
+      (getEnv("SMTP_USER")
+        ? `Sig Imobiliare Cluj <${getEnv("SMTP_USER")}>`
+        : "Sig Imobiliare Cluj <no-reply@localhost>");
 
     const subject = `[Sig Imobiliare Cluj] Mesaj nou (${source})`;
 
@@ -101,7 +117,7 @@ export async function POST(req: NextRequest) {
       "",
     ].filter(Boolean) as string[];
 
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       to: CONTACT_RECIPIENT,
       from,
       replyTo: email,
@@ -109,10 +125,35 @@ export async function POST(req: NextRequest) {
       text: lines.join("\n"),
     });
 
+    // If we're using the dev stream transport, print the message so it can be inspected.
+    // (In production we send via SMTP and do not log message bodies.)
+    if (process.env.NODE_ENV !== "production") {
+      const maybeMessage = (info as { message?: Buffer | string }).message;
+      if (maybeMessage) {
+        const text =
+          typeof maybeMessage === "string"
+            ? maybeMessage
+            : maybeMessage.toString("utf8");
+        console.log("[contact] email (dev transport):\n" + text);
+      }
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Failed to send message.";
+    if (err instanceof SmtpConfigError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: err.code,
+          error:
+            "Formularul de contact nu este configurat pe server (SMTP lipsește).",
+          contactEmail: CONTACT_RECIPIENT,
+        },
+        { status: 503 },
+      );
+    }
+
+    const message = err instanceof Error ? err.message : "Failed to send message.";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }

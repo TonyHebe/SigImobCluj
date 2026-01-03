@@ -4,10 +4,16 @@ import type { FormEvent } from "react";
 import { useState } from "react";
 
 type Status = "idle" | "sending" | "sent" | "error";
+type ErrorState =
+  | {
+      message: string;
+      mailto?: string;
+    }
+  | null;
 
 export function QuickRequestForm() {
   const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<ErrorState>(null);
 
   const [propertyType, setPropertyType] = useState("Apartament");
   const [neighborhood, setNeighborhood] = useState("Oricare");
@@ -34,9 +40,26 @@ export function QuickRequestForm() {
         }),
       });
 
-      const data = (await res.json()) as { ok?: boolean; error?: string };
+      const data = (await res.json()) as {
+        ok?: boolean;
+        error?: string;
+        code?: string;
+        contactEmail?: string;
+      };
       if (!res.ok || !data.ok) {
-        throw new Error(data.error || "Cererea nu a putut fi trimisă.");
+        setStatus("error");
+
+        if (data.code === "SMTP_NOT_CONFIGURED" && data.contactEmail) {
+          setError({
+            message:
+              "Momentan formularul nu poate trimite emailuri automat. Te rugăm să ne scrii direct:",
+            mailto: `mailto:${data.contactEmail}`,
+          });
+          return;
+        }
+
+        setError({ message: data.error || "Cererea nu a putut fi trimisă." });
+        return;
       }
 
       setStatus("sent");
@@ -44,7 +67,10 @@ export function QuickRequestForm() {
       setPhone("");
     } catch (err) {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Cererea nu a putut fi trimisă.");
+      setError({
+        message:
+          err instanceof Error ? err.message : "Cererea nu a putut fi trimisă.",
+      });
     }
   }
 
@@ -113,7 +139,16 @@ export function QuickRequestForm() {
         {status === "sending" ? "Se trimite..." : status === "sent" ? "Trimis" : "Trimite cererea"}
       </button>
 
-      {error ? <p className="text-xs text-rose-600">{error}</p> : null}
+      {error ? (
+        <div className="text-xs text-rose-600">
+          <p>{error.message}</p>
+          {error.mailto ? (
+            <a className="underline hover:no-underline" href={error.mailto}>
+              {error.mailto.replace("mailto:", "")}
+            </a>
+          ) : null}
+        </div>
+      ) : null}
       {status === "sent" ? (
         <p className="text-xs text-emerald-700">
           Cerere trimisă. Revenim în scurt timp.
