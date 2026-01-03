@@ -18,7 +18,6 @@ export function QuickRequestForm() {
   const [propertyType, setPropertyType] = useState("Apartament");
   const [neighborhood, setNeighborhood] = useState("Oricare");
   const [budget, setBudget] = useState("");
-  const [phone, setPhone] = useState("");
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -36,7 +35,6 @@ export function QuickRequestForm() {
           propertyType,
           neighborhood,
           budget,
-          phone,
         }),
       });
 
@@ -64,7 +62,6 @@ export function QuickRequestForm() {
 
       setStatus("sent");
       setBudget("");
-      setPhone("");
     } catch (err) {
       setStatus("error");
       setError({
@@ -108,26 +105,25 @@ export function QuickRequestForm() {
         </label>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-3">
         <label className="grid gap-1 text-sm">
-          <span className="text-slate-700">Buget (max)</span>
-          <input
+          <span className="text-slate-700">Buget</span>
+          <select
             value={budget}
             onChange={(e) => setBudget(e.target.value)}
             className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
-            placeholder="ex: 180000"
-            inputMode="numeric"
-          />
-        </label>
-        <label className="grid gap-1 text-sm">
-          <span className="text-slate-700">Telefon</span>
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
-            placeholder="ex: 07xx xxx xxx"
-            autoComplete="tel"
-          />
+            required
+          >
+            <option value="" disabled>
+              Alege intervalul
+            </option>
+            <option value="0–30.000 €">0–30.000 €</option>
+            <option value="30.000–80.000 €">30.000–80.000 €</option>
+            <option value="80.000–120.000 €">80.000–120.000 €</option>
+            <option value="120.000–180.000 €">120.000–180.000 €</option>
+            <option value="180.000–250.000 €">180.000–250.000 €</option>
+            <option value="250.000+ €">250.000+ €</option>
+          </select>
         </label>
       </div>
 
