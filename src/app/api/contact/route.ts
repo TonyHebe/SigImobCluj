@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import nodemailer from "nodemailer";
+import crypto from "node:crypto";
 
 export const runtime = "nodejs";
 
@@ -47,7 +48,50 @@ function clamp(input: unknown, maxLen: number): string | undefined {
   return s.length > maxLen ? `${s.slice(0, maxLen)}…` : s;
 }
 
-function makeTransport() {
+function redactEmail(addr: string | undefined): string | undefined {
+  if (!addr) return undefined;
+  const at = addr.indexOf("@");
+  if (at <= 1) return "***";
+  return `${addr[0]}***${addr.slice(at)}`;
+}
+
+function serializeMailError(err: unknown) {
+  if (!(err instanceof Error)) return { message: String(err) };
+  const anyErr = err as Error & Record<string, unknown>;
+  return {
+    name: err.name,
+    message: err.message,
+    code: typeof anyErr.code === "string" ? anyErr.code : undefined,
+    command: typeof anyErr.command === "string" ? anyErr.command : undefined,
+    response: typeof anyErr.response === "string" ? anyErr.response : undefined,
+    responseCode:
+      typeof anyErr.responseCode === "number" ? anyErr.responseCode : undefined,
+    errno: typeof anyErr.errno === "number" ? anyErr.errno : undefined,
+    syscall: typeof anyErr.syscall === "string" ? anyErr.syscall : undefined,
+    address: typeof anyErr.address === "string" ? anyErr.address : undefined,
+    port: typeof anyErr.port === "number" ? anyErr.port : undefined,
+    stack: typeof err.stack === "string" ? err.stack : undefined,
+  };
+}
+
+type TransportBundle =
+  | {
+      kind: "smtp";
+      transporter: nodemailer.Transporter;
+      meta: {
+        host: string;
+        port: number;
+        secure: boolean;
+        user: string;
+      };
+    }
+  | {
+      kind: "stream";
+      transporter: nodemailer.Transporter;
+      meta: { note: "dev stream transport (SMTP not configured)" };
+    };
+
+function makeTransport(): TransportBundle {
   const host = getEnv("SMTP_HOST");
   const user = getEnv("SMTP_USER");
   const pass = getEnv("SMTP_PASS");
@@ -57,11 +101,15 @@ function makeTransport() {
     // In local/dev environments we allow submitting the form without SMTP
     // by writing the generated email to the server logs (stream transport).
     if (process.env.NODE_ENV !== "production") {
-      return nodemailer.createTransport({
-        streamTransport: true,
-        newline: "unix",
-        buffer: true,
-      });
+      return {
+        kind: "stream",
+        transporter: nodemailer.createTransport({
+          streamTransport: true,
+          newline: "unix",
+          buffer: true,
+        }),
+        meta: { note: "dev stream transport (SMTP not configured)" },
+      };
     }
     throw new SmtpConfigError();
   }
@@ -69,15 +117,20 @@ function makeTransport() {
   const port = portRaw ? Number(portRaw) : 465;
   const secure = port === 465;
 
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure,
-    auth: { user, pass },
-  });
+  return {
+    kind: "smtp",
+    transporter: nodemailer.createTransport({
+      host,
+      port,
+      secure,
+      auth: { user, pass },
+    }),
+    meta: { host, port, secure, user },
+  };
 }
 
 export async function POST(req: NextRequest) {
+  const requestId = crypto.randomUUID();
   try {
     const body = (await req.json()) as ContactPayload;
 
@@ -100,7 +153,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const transporter = makeTransport();
+    const transport = makeTransport();
 
     const smtpUser = getEnv("SMTP_USER");
     const from =
@@ -125,10 +178,40 @@ export async function POST(req: NextRequest) {
       "",
     ].filter(Boolean) as string[];
 
-    const info = await transporter.sendMail({
+    const replyTo = email && isEmailLike(email) ? email : undefined;
+
+    // Helpful diagnostics for provider-specific SMTP failures (like Yahoo 550s).
+    // Safe: do NOT log SMTP_PASS or email body.
+    if (transport.kind === "smtp") {
+      console.log("[contact] smtp configured", {
+        requestId,
+        host: transport.meta.host,
+        port: transport.meta.port,
+        secure: transport.meta.secure,
+        user: redactEmail(transport.meta.user),
+        from: redactEmail(from),
+        to: redactEmail(CONTACT_RECIPIENT),
+        replyTo: redactEmail(replyTo),
+      });
+      try {
+        await transport.transporter.verify();
+        console.log("[contact] smtp verify ok", { requestId });
+      } catch (verifyErr) {
+        console.error("[contact] smtp verify failed", {
+          requestId,
+          error: serializeMailError(verifyErr),
+        });
+      }
+    } else {
+      console.log("[contact] smtp not configured; using dev transport", {
+        requestId,
+      });
+    }
+
+    const info = await transport.transporter.sendMail({
       to: CONTACT_RECIPIENT,
       from,
-      replyTo: email && isEmailLike(email) ? email : undefined,
+      replyTo,
       subject,
       text: lines.join("\n"),
     });
@@ -149,6 +232,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     if (err instanceof SmtpConfigError) {
+      console.error("[contact] smtp not configured", { requestId });
       return NextResponse.json(
         {
           ok: false,
@@ -161,6 +245,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    console.error("[contact] email send failed", {
+      requestId,
+      error: serializeMailError(err),
+    });
     const message = err instanceof Error ? err.message : "Failed to send message.";
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
