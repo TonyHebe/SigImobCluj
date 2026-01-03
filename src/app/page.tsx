@@ -475,9 +475,9 @@ export default function HomePage() {
                   <div className="mt-2 text-sm text-slate-600">
                     <a
                       className="hover:text-slate-900"
-                      href="mailto:jessica_pana24@yahoo.com"
+                      href="mailto:jessicapana9@gmail.com"
                     >
-                      jessica_pana24@yahoo.com
+                      jessicapana9@gmail.com
                     </a>
                   </div>
                 </div>

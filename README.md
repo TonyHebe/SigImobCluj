@@ -52,7 +52,7 @@ Set these environment variables in your deploy (e.g. Vercel Project Settings →
 - `SMTP_USER`
 - `SMTP_PASS`
 - `SMTP_FROM` (optional)
-- `CONTACT_RECIPIENT` (optional; defaults to `jessica_pana24@yahoo.com`)
+- `CONTACT_RECIPIENT` (optional; defaults to `jessicapana9@gmail.com`)
 
 ### Tech
 
