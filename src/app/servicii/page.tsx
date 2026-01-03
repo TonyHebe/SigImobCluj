@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
@@ -85,31 +86,50 @@ export default function ServiciiPage() {
             className="pointer-events-none absolute inset-0 bg-[radial-gradient(800px_circle_at_20%_10%,rgba(14,165,233,0.18),transparent_55%),radial-gradient(800px_circle_at_80%_0%,rgba(99,102,241,0.14),transparent_55%)]"
           />
           <div className="relative mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-20">
-            <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
-                <span className="inline-flex size-2 rounded-full bg-emerald-500" />
-                Consultanță completă • selecție atentă • tranzacții sigure
+            <div className="grid items-center gap-10 lg:grid-cols-2">
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-medium text-slate-600 shadow-sm">
+                  <span className="inline-flex size-2 rounded-full bg-emerald-500" />
+                  Consultanță completă • selecție atentă • tranzacții sigure
+                </div>
+                <h1 className="mt-5 text-balance text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
+                  Servicii imobiliare complete, fără stres.
+                </h1>
+                <p className="mt-4 text-pretty text-base leading-relaxed text-slate-600 sm:text-lg">
+                  Ne ocupăm de prezentare, verificări, negociere și documentație
+                  — ca tu să iei decizia corectă, informat.
+                </p>
+                <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <Link
+                    href="/listari"
+                    className="inline-flex items-center justify-center rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
+                  >
+                    Vezi listările recomandate
+                  </Link>
+                  <Link
+                    href="/#contact"
+                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                  >
+                    Cere o ofertă personalizată
+                  </Link>
+                </div>
               </div>
-              <h1 className="mt-5 text-balance text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-                Servicii imobiliare complete, fără stres.
-              </h1>
-              <p className="mt-4 text-pretty text-base leading-relaxed text-slate-600 sm:text-lg">
-                Ne ocupăm de prezentare, verificări, negociere și documentație —
-                ca tu să iei decizia corectă, informat.
-              </p>
-              <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-                <Link
-                  href="/listari"
-                  className="inline-flex items-center justify-center rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
-                >
-                  Vezi listările recomandate
-                </Link>
-                <Link
-                  href="/#contact"
-                  className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
-                >
-                  Cere o ofertă personalizată
-                </Link>
+
+              <div className="relative">
+                <div className="relative aspect-[16/9] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+                  <Image
+                    src="/servicii/team.png"
+                    alt="Echipa Sig Imobiliare Cluj în birou"
+                    fill
+                    priority
+                    sizes="(min-width: 1024px) 45vw, 100vw"
+                    className="object-cover"
+                  />
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/25 via-slate-950/5 to-transparent"
+                  />
+                </div>
               </div>
             </div>
           </div>
