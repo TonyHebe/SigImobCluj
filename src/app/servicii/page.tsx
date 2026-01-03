@@ -29,11 +29,19 @@ const services = [
   },
 ];
 
+function getTeamImageSrc() {
+  const candidates = ["team.webp", "team.jpg", "team.jpeg", "team.png"] as const;
+
+  for (const filename of candidates) {
+    const localPath = join(process.cwd(), "public", "servicii", filename);
+    if (existsSync(localPath)) return `/servicii/${filename}`;
+  }
+
+  return "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80";
+}
+
 export default function ServiciiPage() {
-  const localTeamImagePath = join(process.cwd(), "public", "servicii", "team.png");
-  const teamImageSrc = existsSync(localTeamImagePath)
-    ? "/servicii/team.png"
-    : "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80";
+  const teamImageSrc = getTeamImageSrc();
 
   return (
     <div className="min-h-dvh">
