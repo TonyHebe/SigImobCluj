@@ -463,8 +463,8 @@ export default function HomePage() {
                     Telefon
                   </div>
                   <div className="mt-2 text-sm text-slate-600">
-                    <a className="hover:text-slate-900" href="tel:+40700000000">
-                      +40 700 000 000
+                    <a className="hover:text-slate-900" href="tel:+40755787617">
+                      +40755787617
                     </a>
                   </div>
                 </div>
