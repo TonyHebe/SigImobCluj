@@ -15,6 +15,13 @@ const CONTACT_RECIPIENT = isEmailLike(CONTACT_RECIPIENT_RAW)
   ? CONTACT_RECIPIENT_RAW
   : "jessica_pana24@yahoo.com";
 
+class EmailProviderConfigError extends Error {
+  public readonly code = "EMAIL_PROVIDER_NOT_CONFIGURED" as const;
+  constructor() {
+    super("Email provider is not configured.");
+  }
+}
+
 type ContactPayload = {
   name?: string;
   email?: string;
@@ -38,6 +45,45 @@ function getEnv(name: string): string | undefined {
   if (!v) return undefined;
   const trimmed = v.trim();
   return trimmed.length ? trimmed : undefined;
+}
+
+async function sendViaResend(args: {
+  to: string;
+  from: string;
+  replyTo?: string;
+  subject: string;
+  text: string;
+}) {
+  const apiKey = getEnv("RESEND_API_KEY");
+  if (!apiKey) throw new EmailProviderConfigError();
+
+  const from = getEnv("RESEND_FROM") ?? args.from;
+  // Resend requires a verified sender; avoid silently attempting with no-reply.
+  if (!from || from === "no-reply@localhost") {
+    throw new EmailProviderConfigError();
+  }
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to: [args.to],
+      subject: args.subject,
+      text: args.text,
+      reply_to: args.replyTo,
+    }),
+  });
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => "");
+    throw new Error(
+      `Resend failed (${res.status}): ${body || res.statusText || "Unknown error"}`,
+    );
+  }
 }
 
 function clamp(input: unknown, maxLen: number): string | undefined {
@@ -100,8 +146,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const transporter = makeTransport();
-
     const smtpUser = getEnv("SMTP_USER");
     const from =
       getEnv("SMTP_FROM") ??
@@ -125,29 +169,56 @@ export async function POST(req: NextRequest) {
       "",
     ].filter(Boolean) as string[];
 
-    const info = await transporter.sendMail({
-      to: CONTACT_RECIPIENT,
-      from,
-      replyTo: email && isEmailLike(email) ? email : undefined,
-      subject,
-      text: lines.join("\n"),
-    });
+    const replyTo = email && isEmailLike(email) ? email : undefined;
+    const text = lines.join("\n");
 
-    // If we're using the dev stream transport, print the message so it can be inspected.
-    // (In production we send via SMTP and do not log message bodies.)
-    if (process.env.NODE_ENV !== "production") {
-      const maybeMessage = (info as { message?: Buffer | string }).message;
-      if (maybeMessage) {
-        const text =
-          typeof maybeMessage === "string"
-            ? maybeMessage
-            : maybeMessage.toString("utf8");
-        console.log("[contact] email (dev transport):\n" + text);
+    // Prefer Resend (API) if configured; fall back to SMTP.
+    if (getEnv("RESEND_API_KEY")) {
+      await sendViaResend({
+        to: CONTACT_RECIPIENT,
+        from,
+        replyTo,
+        subject,
+        text,
+      });
+    } else {
+      const transporter = makeTransport();
+      const info = await transporter.sendMail({
+        to: CONTACT_RECIPIENT,
+        from,
+        replyTo,
+        subject,
+        text,
+      });
+
+      // If we're using the dev stream transport, print the message so it can be inspected.
+      // (In production we send via SMTP and do not log message bodies.)
+      if (process.env.NODE_ENV !== "production") {
+        const maybeMessage = (info as { message?: Buffer | string }).message;
+        if (maybeMessage) {
+          const printed =
+            typeof maybeMessage === "string"
+              ? maybeMessage
+              : maybeMessage.toString("utf8");
+          console.log("[contact] email (dev transport):\n" + printed);
+        }
       }
     }
 
     return NextResponse.json({ ok: true });
   } catch (err) {
+    if (err instanceof EmailProviderConfigError) {
+      return NextResponse.json(
+        {
+          ok: false,
+          code: err.code,
+          error:
+            "Formularul de contact nu este configurat pe server (provider email lipsește).",
+          contactEmail: CONTACT_RECIPIENT,
+        },
+        { status: 503 },
+      );
+    }
     if (err instanceof SmtpConfigError) {
       return NextResponse.json(
         {
