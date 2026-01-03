@@ -3,8 +3,17 @@ import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
 
-const CONTACT_RECIPIENT =
-  process.env.CONTACT_RECIPIENT ?? "jessica_pana24@yahoo.com";
+function isEmailLike(input: string): boolean {
+  // Pragmatic (not RFC-complete) validation to avoid passing invalid
+  // addresses to SMTP providers, which can yield confusing 5xx errors.
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
+}
+
+const CONTACT_RECIPIENT_RAW =
+  getEnv("CONTACT_RECIPIENT") ?? "jessica_pana24@yahoo.com";
+const CONTACT_RECIPIENT = isEmailLike(CONTACT_RECIPIENT_RAW)
+  ? CONTACT_RECIPIENT_RAW
+  : "jessica_pana24@yahoo.com";
 
 type ContactPayload = {
   name?: string;
@@ -93,11 +102,10 @@ export async function POST(req: NextRequest) {
 
     const transporter = makeTransport();
 
+    const smtpUser = getEnv("SMTP_USER");
     const from =
       getEnv("SMTP_FROM") ??
-      (getEnv("SMTP_USER")
-        ? `Sig Imobiliare Cluj <${getEnv("SMTP_USER")}>`
-        : "Sig Imobiliare Cluj <no-reply@localhost>");
+      (smtpUser ? smtpUser : "no-reply@localhost");
 
     const subject = `[Sig Imobiliare Cluj] Mesaj nou (${source})`;
 
@@ -120,7 +128,7 @@ export async function POST(req: NextRequest) {
     const info = await transporter.sendMail({
       to: CONTACT_RECIPIENT,
       from,
-      replyTo: email,
+      replyTo: email && isEmailLike(email) ? email : undefined,
       subject,
       text: lines.join("\n"),
     });
