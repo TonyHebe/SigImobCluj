@@ -39,7 +39,7 @@ export default function HomePage() {
               Listări
             </Link>
             <Link className="hover:text-slate-900" href="/servicii">
-              Servicii
+              Echipa
             </Link>
             <a className="hover:text-slate-900" href="#contact">
               Contact
@@ -313,7 +313,7 @@ export default function HomePage() {
                 className="text-slate-600 hover:text-slate-900"
                 href="/servicii"
               >
-                Servicii
+                Echipa
               </a>
               <a className="text-slate-600 hover:text-slate-900" href="#contact">
                 Contact
