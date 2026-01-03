@@ -143,9 +143,13 @@ export async function POST(req: NextRequest) {
     const budget = clamp(body.budget, 80);
     const source = clamp(body.source, 80) ?? "website";
 
-    // Require at least a message OR a lead request (phone + some details).
+    // Require at least a message OR a lead request.
     const hasMessage = Boolean(message);
-    const hasLeadRequest = Boolean(phone || email) && Boolean(propertyType || neighborhood || budget);
+    const isQuickRequest = source === "quick-request";
+    const hasDetails = Boolean(propertyType || neighborhood || budget);
+    const hasLeadRequest = isQuickRequest
+      ? hasDetails
+      : Boolean(phone || email) && hasDetails;
     if (!hasMessage && !hasLeadRequest) {
       return NextResponse.json(
         { ok: false, error: "Missing message/details." },
