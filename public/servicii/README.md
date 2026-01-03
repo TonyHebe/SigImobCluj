@@ -1,6 +1,6 @@
-Place the services page photo here as:
+If you want a custom team photo for the `/servicii` (Echipa) page, place it here as:
 
 - `public/servicii/team.png`
 
-It will be rendered on `/servicii` via `src="/servicii/team.png"`.
+Otherwise the page uses a default remote image.
 

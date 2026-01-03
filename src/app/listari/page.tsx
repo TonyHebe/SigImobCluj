@@ -120,7 +120,7 @@ export default function ListariPage() {
               Listări
             </Link>
             <Link className="hover:text-slate-900" href="/servicii">
-              Servicii
+              Echipa
             </Link>
             <Link className="hover:text-slate-900" href="/#contact">
               Contact

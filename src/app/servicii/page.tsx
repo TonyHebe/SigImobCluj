@@ -3,9 +3,9 @@ import Image from "next/image";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Servicii | Sig Imobiliare Cluj",
+  title: "Echipa | Sig Imobiliare Cluj",
   description:
-    "Servicii imobiliare complete în Cluj-Napoca: evaluare, marketing, vizionări, negociere și sprijin pentru acte.",
+    "Echipa Sig Imobiliare Cluj: consultanță, marketing, vizionări, negociere și sprijin complet pentru acte.",
 };
 
 const services = [
@@ -49,7 +49,7 @@ export default function ServiciiPage() {
               <div className="text-sm font-semibold tracking-tight text-slate-900">
                 Sig Imobiliare Cluj
               </div>
-              <div className="text-xs text-slate-500">Servicii</div>
+              <div className="text-xs text-slate-500">Echipa</div>
             </div>
           </Link>
 
@@ -61,7 +61,7 @@ export default function ServiciiPage() {
               Listări
             </Link>
             <Link className="hover:text-slate-900" href="/servicii">
-              Servicii
+              Echipa
             </Link>
             <Link className="hover:text-slate-900" href="/#contact">
               Contact
@@ -93,11 +93,11 @@ export default function ServiciiPage() {
                   Consultanță completă • selecție atentă • tranzacții sigure
                 </div>
                 <h1 className="mt-5 text-balance text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-                  Servicii imobiliare complete, fără stres.
+                  Echipa care îți simplifică tranzacția imobiliară.
                 </h1>
                 <p className="mt-4 text-pretty text-base leading-relaxed text-slate-600 sm:text-lg">
-                  Ne ocupăm de prezentare, verificări, negociere și documentație
-                  — ca tu să iei decizia corectă, informat.
+                  Suntem alături de tine de la prima discuție până la semnare:
+                  prezentare, verificări, vizionări, negociere și documentație.
                 </p>
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
                   <Link
@@ -118,7 +118,7 @@ export default function ServiciiPage() {
               <div className="relative">
                 <div className="relative aspect-[16/9] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                   <Image
-                    src="/servicii/team.png"
+                    src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80"
                     alt="Echipa Sig Imobiliare Cluj în birou"
                     fill
                     priority
