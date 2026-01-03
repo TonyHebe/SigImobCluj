@@ -1,5 +1,6 @@
 export type Listing = {
   id: string;
+  kind: "apartment" | "house" | "land";
   badge: string;
   title: string;
   subtitle: string;
@@ -15,6 +16,7 @@ export type Listing = {
 export const featuredListings = [
   {
     id: "apt-zorilor-3cam",
+    kind: "apartment",
     badge: "Exclusivitate",
     title: "Apartament 3 camere • Zorilor",
     subtitle: "Terasa, parcare, aproape de UMF",
@@ -39,6 +41,7 @@ export const featuredListings = [
   },
   {
     id: "casa-faget",
+    kind: "house",
     badge: "Nou",
     title: "Casă modernă • Făget",
     subtitle: "Curte, intimitate, acces rapid spre oraș",
@@ -63,6 +66,7 @@ export const featuredListings = [
   },
   {
     id: "apt-gheorgheni",
+    kind: "apartment",
     badge: "Recomandat",
     title: "Apartament 2 camere • Gheorgheni",
     subtitle: "Lângă Iulius Mall, finisaje premium",
@@ -87,6 +91,7 @@ export const featuredListings = [
   },
   {
     id: "studio-marasti",
+    kind: "apartment",
     badge: "Investiție",
     title: "Studio • Mărăști",
     subtitle: "Randament bun pentru închiriere",
@@ -111,6 +116,7 @@ export const featuredListings = [
   },
   {
     id: "teren-someseni",
+    kind: "land",
     badge: "Teren",
     title: "Teren intravilan • Someșeni",
     subtitle: "Potrivit pentru casă / duplex",
@@ -135,6 +141,7 @@ export const featuredListings = [
   },
   {
     id: "penthouse-centru",
+    kind: "apartment",
     badge: "Premium",
     title: "Penthouse • Centru",
     subtitle: "Vedere panoramică, 2 terase, lift",
