@@ -47,6 +47,40 @@ function getEnv(name: string): string | undefined {
   return trimmed.length ? trimmed : undefined;
 }
 
+function safeString(input: unknown, maxLen = 500): string | undefined {
+  if (typeof input !== "string") return undefined;
+  const s = input.trim();
+  if (!s) return undefined;
+  return s.length > maxLen ? `${s.slice(0, maxLen)}…` : s;
+}
+
+function logEmailError(
+  provider: "smtp" | "resend",
+  err: unknown,
+  meta: Record<string, unknown>,
+) {
+  const e = err as Partial<{
+    message: string;
+    code: string;
+    name: string;
+    command: string;
+    response: string;
+    responseCode: number;
+    stack: string;
+  }>;
+
+  console.error("[contact] email send failed", {
+    provider,
+    ...meta,
+    errName: e.name,
+    errCode: e.code,
+    errMessage: safeString(e.message, 800),
+    smtpCommand: safeString(e.command),
+    smtpResponseCode: e.responseCode,
+    smtpResponse: safeString(e.response, 800),
+  });
+}
+
 async function sendViaResend(args: {
   to: string;
   from: string;
@@ -174,22 +208,64 @@ export async function POST(req: NextRequest) {
 
     // Prefer Resend (API) if configured; fall back to SMTP.
     if (getEnv("RESEND_API_KEY")) {
-      await sendViaResend({
-        to: CONTACT_RECIPIENT,
-        from,
-        replyTo,
-        subject,
-        text,
-      });
+      try {
+        await sendViaResend({
+          to: CONTACT_RECIPIENT,
+          from,
+          replyTo,
+          subject,
+          text,
+        });
+      } catch (err) {
+        logEmailError("resend", err, {
+          to: CONTACT_RECIPIENT,
+          from,
+          replyTo,
+          source,
+        });
+        throw err;
+      }
     } else {
       const transporter = makeTransport();
-      const info = await transporter.sendMail({
-        to: CONTACT_RECIPIENT,
-        from,
-        replyTo,
-        subject,
-        text,
-      });
+      // Verify SMTP connection/auth to surface clearer errors in logs.
+      try {
+        await transporter.verify();
+      } catch (err) {
+        logEmailError("smtp", err, {
+          step: "verify",
+          host: getEnv("SMTP_HOST"),
+          port: getEnv("SMTP_PORT") ?? 465,
+          user: getEnv("SMTP_USER"),
+          to: CONTACT_RECIPIENT,
+          from,
+          replyTo,
+          source,
+        });
+        throw err;
+      }
+
+      let info: unknown;
+      try {
+        info = await transporter.sendMail({
+          to: CONTACT_RECIPIENT,
+          from,
+          replyTo,
+          subject,
+          text,
+        });
+      } catch (err) {
+        logEmailError("smtp", err, {
+          step: "sendMail",
+          host: getEnv("SMTP_HOST"),
+          port: getEnv("SMTP_PORT") ?? 465,
+          user: getEnv("SMTP_USER"),
+          to: CONTACT_RECIPIENT,
+          from,
+          replyTo,
+          source,
+        });
+        throw err;
+      }
 
       // If we're using the dev stream transport, print the message so it can be inspected.
       // (In production we send via SMTP and do not log message bodies.)
@@ -232,8 +308,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const message = err instanceof Error ? err.message : "Failed to send message.";
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    const message =
+      err instanceof Error ? err.message : "Failed to send message.";
+    const responseCode =
+      typeof (err as { responseCode?: unknown }).responseCode === "number"
+        ? ((err as { responseCode?: number }).responseCode as number)
+        : undefined;
+    return NextResponse.json(
+      {
+        ok: false,
+        error: message,
+        smtpResponseCode: responseCode,
+      },
+      { status: 500 },
+    );
   }
 }
 
