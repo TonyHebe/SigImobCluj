@@ -30,7 +30,13 @@ const services = [
 ];
 
 function getTeamImageSrc() {
-  const candidates = ["team.webp", "team.jpg", "team.jpeg", "team.png"] as const;
+  const candidates = [
+    "ba7f05ba11a94dd0ba5e84a117713a13.jpg",
+    "team.webp",
+    "team.jpg",
+    "team.jpeg",
+    "team.png",
+  ] as const;
 
   for (const filename of candidates) {
     const localPath = join(process.cwd(), "public", "servicii", filename);
