@@ -39,7 +39,20 @@ Typical records:
 ### Edit content
 
 - Update listings in `src/lib/listings.ts`
-- Update phone/email in `src/components/site-footer.tsx` and `src/app/contact/page.tsx`
+- Update phone/email and contact section in `src/app/page.tsx`
+
+### Contact form email (SMTP)
+
+The contact forms POST to `src/app/api/contact/route.ts`, which sends an email via SMTP.
+
+Set these environment variables in your deploy (e.g. Vercel Project Settings → Environment Variables):
+
+- `SMTP_HOST`
+- `SMTP_PORT` (optional, defaults to `465`)
+- `SMTP_USER`
+- `SMTP_PASS`
+- `SMTP_FROM` (optional)
+- `CONTACT_RECIPIENT` (optional; defaults to `jessica_pana24@yahoo.com`)
 
 ### Tech
 
