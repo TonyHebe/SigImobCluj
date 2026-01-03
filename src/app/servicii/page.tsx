@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { existsSync } from "node:fs";
+import { existsSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import Image from "next/image";
 import Link from "next/link";
@@ -34,7 +34,34 @@ function getTeamImageSrc() {
 
   for (const filename of candidates) {
     const localPath = join(process.cwd(), "public", "servicii", filename);
-    if (existsSync(localPath)) return `/servicii/${filename}`;
+    if (existsSync(localPath)) {
+      const version = Math.floor(statSync(localPath).mtimeMs);
+      return `/servicii/${encodeURIComponent(filename)}?v=${version}`;
+    }
+  }
+
+  // Fallback: if you uploaded a custom image with a random name (e.g. ba7f0...jpg),
+  // use the first image we find in `public/servicii/`.
+  const servicesDir = join(process.cwd(), "public", "servicii");
+  if (existsSync(servicesDir)) {
+    const allowedExt = new Set([".webp", ".jpg", ".jpeg", ".png"]);
+    const files = readdirSync(servicesDir, { withFileTypes: true })
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name)
+      .filter((name) => {
+        const lower = name.toLowerCase();
+        const dotIdx = lower.lastIndexOf(".");
+        if (dotIdx === -1) return false;
+        return allowedExt.has(lower.slice(dotIdx));
+      })
+      .sort((a, b) => a.localeCompare(b));
+
+    if (files.length > 0) {
+      const filename = files[0];
+      const localPath = join(servicesDir, filename);
+      const version = Math.floor(statSync(localPath).mtimeMs);
+      return `/servicii/${encodeURIComponent(filename)}?v=${version}`;
+    }
   }
 
   return "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80";
