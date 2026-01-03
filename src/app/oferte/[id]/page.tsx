@@ -71,7 +71,7 @@ export default async function OfferDetailsPage({ params }: PageProps) {
 
           <div className="flex items-center gap-2">
             <Link
-              href="/#listari"
+              href="/listari"
               className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
             >
               Înapoi la listări
@@ -172,7 +172,7 @@ export default async function OfferDetailsPage({ params }: PageProps) {
                   Cere detalii / programează vizionare
                 </Link>
                 <Link
-                  href="/#listari"
+                  href="/listari"
                   className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
                 >
                   Vezi și alte oferte
