@@ -113,13 +113,13 @@ export default function ListariPage() {
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex">
+            <Link className="hover:text-slate-900" href="/">
+              Acasa
+            </Link>
             <Link className="hover:text-slate-900" href="/listari">
               Listări
             </Link>
-            <Link className="hover:text-slate-900" href="/#cartiere">
-              Cartiere
-            </Link>
-            <Link className="hover:text-slate-900" href="/#servicii">
+            <Link className="hover:text-slate-900" href="/servicii">
               Servicii
             </Link>
             <Link className="hover:text-slate-900" href="/#contact">
