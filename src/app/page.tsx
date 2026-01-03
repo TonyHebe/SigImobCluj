@@ -1,81 +1,9 @@
 import Image from "next/image";
+import Link from "next/link";
+
+import { featuredListings } from "@/lib/listings";
 
 export default function HomePage() {
-  const featuredListings = [
-    {
-      id: "apt-zorilor-3cam",
-      badge: "Exclusivitate",
-      title: "Apartament 3 camere • Zorilor",
-      subtitle: "Terasa, parcare, aproape de UMF",
-      price: "189.000 €",
-      details: ["78 m²", "3 camere", "2 băi", "Et. 3/6"],
-      image: {
-        src: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=1600&q=80",
-        alt: "Apartament modern, living luminos",
-      },
-    },
-    {
-      id: "casa-faget",
-      badge: "Nou",
-      title: "Casă modernă • Făget",
-      subtitle: "Curte, intimitate, acces rapid spre oraș",
-      price: "465.000 €",
-      details: ["156 m² utili", "5 camere", "Teren 420 m²"],
-      image: {
-        src: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1600&q=80",
-        alt: "Casă modernă cu fațadă luminoasă",
-      },
-    },
-    {
-      id: "apt-gheorgheni",
-      badge: "Recomandat",
-      title: "Apartament 2 camere • Gheorgheni",
-      subtitle: "Lângă Iulius Mall, finisaje premium",
-      price: "142.500 €",
-      details: ["56 m²", "2 camere", "Balcon", "Et. 5/10"],
-      image: {
-        src: "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=1600&q=80",
-        alt: "Apartament cu bucătărie open-space",
-      },
-    },
-    {
-      id: "studio-marasti",
-      badge: "Investiție",
-      title: "Studio • Mărăști",
-      subtitle: "Randament bun pentru închiriere",
-      price: "94.900 €",
-      details: ["32 m²", "1 cameră", "Renovat", "Et. 2/4"],
-      image: {
-        src: "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1600&q=80",
-        alt: "Studio compact, amenajat modern",
-      },
-    },
-    {
-      id: "teren-someseni",
-      badge: "Teren",
-      title: "Teren intravilan • Someșeni",
-      subtitle: "Potrivit pentru casă / duplex",
-      price: "129.000 €",
-      details: ["620 m²", "Front 18 m", "Utilități la limită"],
-      image: {
-        src: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=1600&q=80",
-        alt: "Teren cu spațiu verde și deschidere",
-      },
-    },
-    {
-      id: "penthouse-centru",
-      badge: "Premium",
-      title: "Penthouse • Centru",
-      subtitle: "Vedere panoramică, 2 terase, lift",
-      price: "399.000 €",
-      details: ["112 m²", "4 camere", "2 terase", "Ultimul etaj"],
-      image: {
-        src: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=80",
-        alt: "Apartament tip penthouse, interior elegant",
-      },
-    },
-  ] as const;
-
   const neighborhoods = [
     {
       name: "Zorilor",
@@ -338,8 +266,8 @@ export default function HomePage() {
                 <div className="relative">
                   <div className="relative h-44 overflow-hidden bg-[linear-gradient(135deg,rgba(14,165,233,0.22),rgba(99,102,241,0.18))]">
                     <Image
-                      src={l.image.src}
-                      alt={l.image.alt}
+                      src={l.images[0].src}
+                      alt={l.images[0].alt}
                       fill
                       sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
                       className="object-cover transition duration-300 ease-out group-hover:scale-105"
@@ -358,7 +286,12 @@ export default function HomePage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <h3 className="text-base font-semibold text-slate-900">
-                        {l.title}
+                        <Link
+                          href={`/oferte/${l.id}`}
+                          className="outline-none hover:underline focus-visible:rounded focus-visible:ring-2 focus-visible:ring-sky-200"
+                        >
+                          {l.title}
+                        </Link>
                       </h3>
                       <p className="mt-1 text-sm text-slate-600">
                         {l.subtitle}
@@ -381,8 +314,8 @@ export default function HomePage() {
                   </ul>
 
                   <div className="mt-5 flex items-center justify-between">
-                    <a
-                      href="#contact"
+                    <Link
+                      href={`/oferte/${l.id}`}
                       className="inline-flex items-center gap-2 text-sm font-semibold text-sky-700 hover:text-sky-800"
                     >
                       Vezi detalii
@@ -397,7 +330,7 @@ export default function HomePage() {
                         <path d="M5 12h14" />
                         <path d="m13 5 7 7-7 7" />
                       </svg>
-                    </a>
+                    </Link>
                     <span className="text-xs text-slate-500">
                       ID: {l.id}
                     </span>
