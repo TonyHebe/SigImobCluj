@@ -4,30 +4,11 @@ import { ContactMessageForm } from "@/components/ContactMessageForm";
 import { QuickRequestForm } from "@/components/QuickRequestForm";
 
 export default function HomePage() {
-  const neighborhoods = [
-    {
-      name: "Zorilor",
-      desc: "Acces rapid spre centru, aproape de universități și servicii.",
-    },
-    {
-      name: "Gheorgheni",
-      desc: "Zone verzi, conectivitate excelentă, aproape de Iulius Mall.",
-    },
-    {
-      name: "Mărăști",
-      desc: "Ideal pentru investiții, transport public și huburi de birouri.",
-    },
-    {
-      name: "Grigorescu",
-      desc: "Liniște, aer curat, promenadă pe Someș și parcuri.",
-    },
-  ] as const;
-
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-3 sm:px-6">
-          <a href="#" className="group inline-flex items-center gap-2">
+          <Link href="/" className="group inline-flex items-center gap-2">
             <span className="inline-flex size-9 items-center justify-center rounded-xl bg-sky-600 text-white shadow-sm">
               <svg
                 aria-hidden="true"
@@ -48,18 +29,18 @@ export default function HomePage() {
                 Cluj‑Napoca • vânzare & închiriere
               </div>
             </div>
-          </a>
+          </Link>
 
           <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex">
+            <Link className="hover:text-slate-900" href="/">
+              Acasa
+            </Link>
             <Link className="hover:text-slate-900" href="/listari">
               Listări
             </Link>
-            <a className="hover:text-slate-900" href="#cartiere">
-              Cartiere
-            </a>
-            <a className="hover:text-slate-900" href="#servicii">
+            <Link className="hover:text-slate-900" href="/servicii">
               Servicii
-            </a>
+            </Link>
             <a className="hover:text-slate-900" href="#contact">
               Contact
             </a>
@@ -168,80 +149,6 @@ export default function HomePage() {
                 </div>
 
                 <QuickRequestForm />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section
-          id="cartiere"
-          className="border-y border-slate-200/70 bg-white"
-        >
-          <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-            <div className="grid gap-10 lg:grid-cols-2 lg:items-start">
-              <div>
-                <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-                  Cartiere populare în Cluj‑Napoca
-                </h2>
-                <p className="mt-3 text-pretty text-sm text-slate-600 sm:text-base">
-                  Îți recomandăm zonele potrivite în funcție de buget, stil de
-                  viață și acces (școli, birouri, transport, parcuri).
-                </p>
-                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div className="text-sm font-semibold text-slate-900">
-                    Sfat rapid
-                  </div>
-                  <p className="mt-2 text-sm text-slate-600">
-                    Pentru investiții: Mărăști / Gheorgheni. Pentru liniște:
-                    Grigorescu / Făget. Pentru conectivitate: Zorilor / Centru.
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid gap-4 sm:grid-cols-2">
-                {neighborhoods.map((n) => (
-                  <div
-                    key={n.name}
-                    className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex size-9 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
-                        <svg
-                          aria-hidden="true"
-                          viewBox="0 0 24 24"
-                          className="size-5"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M12 21s7-4.5 7-11a7 7 0 1 0-14 0c0 6.5 7 11 7 11Z" />
-                          <path d="M12 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z" />
-                        </svg>
-                      </span>
-                      <div className="text-sm font-semibold text-slate-900">
-                        {n.name}
-                      </div>
-                    </div>
-                    <p className="mt-3 text-sm text-slate-600">{n.desc}</p>
-                    <a
-                      href="#contact"
-                      className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-sky-700 hover:text-sky-800"
-                    >
-                      Cere oferte în zonă
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        className="size-4"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      >
-                        <path d="M5 12h14" />
-                        <path d="m13 5 7 7-7 7" />
-                      </svg>
-                    </a>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
@@ -404,7 +311,7 @@ export default function HomePage() {
               </Link>
               <a
                 className="text-slate-600 hover:text-slate-900"
-                href="#servicii"
+                href="/servicii"
               >
                 Servicii
               </a>
