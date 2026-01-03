@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -28,6 +30,11 @@ const services = [
 ];
 
 export default function ServiciiPage() {
+  const localTeamImagePath = join(process.cwd(), "public", "servicii", "team.png");
+  const teamImageSrc = existsSync(localTeamImagePath)
+    ? "/servicii/team.png"
+    : "https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80";
+
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur">
@@ -118,7 +125,7 @@ export default function ServiciiPage() {
               <div className="relative">
                 <div className="relative aspect-[16/9] overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                   <Image
-                    src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?auto=format&fit=crop&w=1600&q=80"
+                    src={teamImageSrc}
                     alt="Echipa Sig Imobiliare Cluj în birou"
                     fill
                     priority
