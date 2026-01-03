@@ -11,10 +11,10 @@ function isEmailLike(input: string): boolean {
 }
 
 const CONTACT_RECIPIENT_RAW =
-  getEnv("CONTACT_RECIPIENT") ?? "jessica_pana24@yahoo.com";
+  getEnv("CONTACT_RECIPIENT") ?? "jessicapana9@gmail.com";
 const CONTACT_RECIPIENT = isEmailLike(CONTACT_RECIPIENT_RAW)
   ? CONTACT_RECIPIENT_RAW
-  : "jessica_pana24@yahoo.com";
+  : "jessicapana9@gmail.com";
 
 type ContactPayload = {
   name?: string;
@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
 
     const replyTo = email && isEmailLike(email) ? email : undefined;
 
-    // Helpful diagnostics for provider-specific SMTP failures (like Yahoo 550s).
+    // Helpful diagnostics for provider-specific SMTP failures (e.g. 550s).
     // Safe: do NOT log SMTP_PASS or email body.
     if (transport.kind === "smtp") {
       console.log("[contact] smtp configured", {
