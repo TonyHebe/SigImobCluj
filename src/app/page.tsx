@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { ContactMessageForm } from "@/components/ContactMessageForm";
+import { QuickRequestForm } from "@/components/QuickRequestForm";
 import { featuredListings } from "@/lib/listings";
 
 export default function HomePage() {
@@ -167,61 +169,7 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <form className="mt-5 grid gap-3">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="grid gap-1 text-sm">
-                      <span className="text-slate-700">Tip proprietate</span>
-                      <select className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200">
-                        <option>Apartament</option>
-                        <option>Casă</option>
-                        <option>Teren</option>
-                        <option>Spațiu comercial</option>
-                      </select>
-                    </label>
-                    <label className="grid gap-1 text-sm">
-                      <span className="text-slate-700">Cartier</span>
-                      <select className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200">
-                        <option>Oricare</option>
-                        <option>Zorilor</option>
-                        <option>Gheorgheni</option>
-                        <option>Mărăști</option>
-                        <option>Grigorescu</option>
-                        <option>Centru</option>
-                        <option>Făget</option>
-                      </select>
-                    </label>
-                  </div>
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <label className="grid gap-1 text-sm">
-                      <span className="text-slate-700">Buget (max)</span>
-                      <input
-                        className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
-                        placeholder="ex: 180000"
-                        inputMode="numeric"
-                      />
-                    </label>
-                    <label className="grid gap-1 text-sm">
-                      <span className="text-slate-700">Telefon</span>
-                      <input
-                        className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
-                        placeholder="ex: 07xx xxx xxx"
-                      />
-                    </label>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="mt-1 inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
-                  >
-                    Trimite cererea
-                  </button>
-
-                  <p className="text-xs text-slate-500">
-                    Exemplu de formular (fără trimitere reală). Îl putem conecta
-                    la email/CRM când vrei.
-                  </p>
-                </form>
+                <QuickRequestForm />
               </div>
             </div>
           </div>
@@ -506,8 +454,7 @@ export default function HomePage() {
                 Contact
               </h2>
               <p className="mt-3 text-pretty text-sm text-slate-600 sm:text-base">
-                Spune‑ne ce cauți și îți trimitem opțiuni potrivite. (Datele de
-                mai jos sunt demonstrative.)
+                Spune‑ne ce cauți și îți trimitem opțiuni potrivite.
               </p>
 
               <div className="mt-6 grid gap-3">
@@ -528,9 +475,9 @@ export default function HomePage() {
                   <div className="mt-2 text-sm text-slate-600">
                     <a
                       className="hover:text-slate-900"
-                      href="mailto:contact@sigimobiliarecluj.ro"
+                      href="mailto:jessica_pana24@yahoo.com"
                     >
-                      contact@sigimobiliarecluj.ro
+                      jessica_pana24@yahoo.com
                     </a>
                   </div>
                 </div>
@@ -549,33 +496,7 @@ export default function HomePage() {
               <div className="text-sm font-semibold text-slate-900">
                 Trimite un mesaj
               </div>
-              <form className="mt-4 grid gap-3">
-                <label className="grid gap-1 text-sm">
-                  <span className="text-slate-700">Nume</span>
-                  <input className="h-11 rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200" />
-                </label>
-                <label className="grid gap-1 text-sm">
-                  <span className="text-slate-700">Email</span>
-                  <input
-                    type="email"
-                    className="h-11 rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
-                  />
-                </label>
-                <label className="grid gap-1 text-sm">
-                  <span className="text-slate-700">Mesaj</span>
-                  <textarea className="min-h-28 rounded-xl border border-slate-200 bg-white px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200" />
-                </label>
-                <button
-                  type="button"
-                  className="mt-1 inline-flex h-11 items-center justify-center rounded-xl bg-sky-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
-                >
-                  Trimite
-                </button>
-                <p className="text-xs text-slate-500">
-                  Formular demo (fără backend). La nevoie, îl conectăm la email,
-                  CRM sau un endpoint.
-                </p>
-              </form>
+              <ContactMessageForm />
             </div>
           </div>
         </section>
