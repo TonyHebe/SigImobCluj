@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
 import { featuredListings, getListingById } from "@/lib/listings";
 
 type PageProps = {
@@ -48,7 +49,7 @@ export default async function OfferDetailsPage({ params }: PageProps) {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-3 sm:px-6">
-          <Link href="/" className="group inline-flex items-center gap-2">
+          <HomeLinkScrollTop className="group inline-flex items-center gap-2">
             <span className="inline-flex size-9 items-center justify-center rounded-xl bg-sky-600 text-white shadow-sm">
               <svg
                 aria-hidden="true"
@@ -67,7 +68,7 @@ export default async function OfferDetailsPage({ params }: PageProps) {
               </div>
               <div className="text-xs text-slate-500">Detalii ofertă</div>
             </div>
-          </Link>
+          </HomeLinkScrollTop>
 
           <div className="flex items-center gap-2">
             <Link

@@ -4,6 +4,8 @@ import { join } from "node:path";
 import Image from "next/image";
 import Link from "next/link";
 
+import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
+
 export const metadata: Metadata = {
   title: "Echipa | Sig Imobiliare Cluj",
   description:
@@ -53,7 +55,7 @@ export default function ServiciiPage() {
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-3 sm:px-6">
-          <Link href="/" className="group inline-flex items-center gap-2">
+          <HomeLinkScrollTop className="group inline-flex items-center gap-2">
             <span className="inline-flex size-9 items-center justify-center rounded-xl bg-sky-600 text-white shadow-sm">
               <svg
                 aria-hidden="true"
@@ -72,7 +74,7 @@ export default function ServiciiPage() {
               </div>
               <div className="text-xs text-slate-500">Echipa</div>
             </div>
-          </Link>
+          </HomeLinkScrollTop>
 
           <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex">
             <Link className="hover:text-slate-900" href="/">
