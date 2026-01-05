@@ -35,6 +35,9 @@ export default function HomePage() {
             <Link className="hover:text-slate-900" href="/">
               Acasa
             </Link>
+            <a className="hover:text-slate-900" href="#despre-noi">
+              Despre noi
+            </a>
             <Link className="hover:text-slate-900" href="/listari">
               Listări
             </Link>
@@ -154,34 +157,37 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section id="servicii" className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+        <section id="despre-noi" className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
           <div className="grid gap-10 lg:grid-cols-3">
             <div className="lg:col-span-1">
               <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-                Servicii complete, fără stres
+                Despre noi
               </h2>
               <p className="mt-3 text-pretty text-sm text-slate-600 sm:text-base">
-                Ne ocupăm de prezentare, verificări, negociere și documentație —
-                ca tu să iei decizia corectă, informat.
+                Sig Imobiliare Cluj este o agenție imobiliară din Cluj‑Napoca,
+                fondată în 2025 de un grup de agenți imobiliari cu experiență.
+                Punem accent pe transparență, comunicare clară și recomandări
+                bazate pe date reale din piață — ca tu să iei decizia corectă,
+                informat.
               </p>
             </div>
             <div className="grid gap-4 sm:grid-cols-2 lg:col-span-2">
               {[
                 {
-                  title: "Evaluare & preț corect",
-                  desc: "Analiză comparativă pe piața din Cluj și strategie de listare.",
+                  title: "Cluj‑Napoca, local",
+                  desc: "Cunoaștem cartierele, prețurile și dinamica pieței — de la centru la zonele în dezvoltare.",
                 },
                 {
-                  title: "Marketing premium",
-                  desc: "Prezentare profesionistă, copy clar, promovare targetată.",
+                  title: "Fondată în 2025",
+                  desc: "O echipă nouă, energică, dar cu experiență solidă în tranzacții și relația cu clienții.",
                 },
                 {
-                  title: "Screening & vizionări",
-                  desc: "Filtrăm cererile și organizăm vizionări eficiente.",
+                  title: "Agenți specializați",
+                  desc: "Consultanți dedicați pe tipuri de proprietăți, cu recomandări obiective și pași clari.",
                 },
                 {
-                  title: "Negociere & acte",
-                  desc: "Sprijin în ofertare, antecontract, creditare și notar.",
+                  title: "Cap‑coadă, fără bătăi de cap",
+                  desc: "De la selecție și vizionări, până la negociere și actele finale — rămâi mereu informat.",
                 },
               ].map((s) => (
                 <div
@@ -189,7 +195,7 @@ export default function HomePage() {
                   className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
                 >
                   <div className="flex items-start gap-3">
-                    <span className="inline-flex size-10 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+                    <span className="inline-flex size-10 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
                       <svg
                         aria-hidden="true"
                         viewBox="0 0 24 24"
@@ -198,7 +204,9 @@ export default function HomePage() {
                         stroke="currentColor"
                         strokeWidth="2"
                       >
-                        <path d="M20 6 9 17l-5-5" />
+                        <path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" />
+                        <path d="M12 8v4" />
+                        <path d="M12 16h.01" />
                       </svg>
                     </span>
                     <div>
