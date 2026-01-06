@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 
+import { AuthTopBar } from "@/components/AuthTopBar";
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -24,6 +26,7 @@ export default function RootLayout({
   return (
     <html lang="ro">
       <body className="min-h-dvh bg-slate-50 text-slate-900 antialiased">
+        <AuthTopBar />
         {children}
       </body>
     </html>
