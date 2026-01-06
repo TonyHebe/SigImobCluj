@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ContactMessageForm } from "@/components/ContactMessageForm";
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
 import { QuickRequestForm } from "@/components/QuickRequestForm";
+import { ScrollTopLink } from "@/components/ScrollTopLink";
 
 export default function HomePage() {
   return (
@@ -39,9 +40,9 @@ export default function HomePage() {
             <a className="hover:text-slate-900" href="#despre-noi">
               Despre noi
             </a>
-            <Link className="hover:text-slate-900" href="/listari">
+            <ScrollTopLink className="hover:text-slate-900" href="/listari">
               Listări
-            </Link>
+            </ScrollTopLink>
             <Link className="hover:text-slate-900" href="/servicii">
               Echipa
             </Link>
@@ -84,12 +85,12 @@ export default function HomePage() {
                 </p>
 
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Link
+                  <ScrollTopLink
                     href="/listari"
                     className="inline-flex items-center justify-center rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
                   >
                     Vezi listările recomandate
-                  </Link>
+                  </ScrollTopLink>
                   <a
                     href="#contact"
                     className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
@@ -312,12 +313,12 @@ export default function HomePage() {
               — agenție imobiliară în Cluj‑Napoca.
             </div>
             <div className="flex flex-wrap gap-4 text-sm">
-              <Link
+              <ScrollTopLink
                 className="text-slate-600 hover:text-slate-900"
                 href="/listari"
               >
                 Listări
-              </Link>
+              </ScrollTopLink>
               <a
                 className="text-slate-600 hover:text-slate-900"
                 href="/servicii"

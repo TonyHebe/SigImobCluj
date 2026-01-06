@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
+import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { featuredListings, getListingById } from "@/lib/listings";
 
 type PageProps = {
@@ -71,12 +72,12 @@ export default async function OfferDetailsPage({ params }: PageProps) {
           </HomeLinkScrollTop>
 
           <div className="flex items-center gap-2">
-            <Link
+            <ScrollTopLink
               href="/listari"
               className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
             >
               Înapoi la listări
-            </Link>
+            </ScrollTopLink>
             <Link
               href="/#contact"
               className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
@@ -172,12 +173,12 @@ export default async function OfferDetailsPage({ params }: PageProps) {
                 >
                   Cere detalii / programează vizionare
                 </Link>
-                <Link
+                <ScrollTopLink
                   href="/listari"
                   className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
                 >
                   Vezi și alte oferte
-                </Link>
+                </ScrollTopLink>
               </div>
 
               <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">

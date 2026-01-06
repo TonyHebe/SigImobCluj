@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
+import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { featuredListings } from "@/lib/listings";
 
 function ListingCard({
@@ -117,9 +118,9 @@ export default function ListariPage() {
             <Link className="hover:text-slate-900" href="/">
               Acasa
             </Link>
-            <Link className="hover:text-slate-900" href="/listari">
+            <ScrollTopLink className="hover:text-slate-900" href="/listari">
               Listări
-            </Link>
+            </ScrollTopLink>
             <Link className="hover:text-slate-900" href="/servicii">
               Echipa
             </Link>
