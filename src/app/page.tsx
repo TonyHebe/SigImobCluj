@@ -34,9 +34,9 @@ export default function HomePage() {
           </HomeLinkScrollTop>
 
           <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex">
-            <Link className="hover:text-slate-900" href="/">
+            <HomeLinkScrollTop className="hover:text-slate-900">
               Acasa
-            </Link>
+            </HomeLinkScrollTop>
             <a className="hover:text-slate-900" href="#despre-noi">
               Despre noi
             </a>

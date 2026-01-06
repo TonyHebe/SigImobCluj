@@ -115,9 +115,9 @@ export default function ListariPage() {
           </HomeLinkScrollTop>
 
           <nav className="hidden items-center gap-6 text-sm text-slate-600 md:flex">
-            <Link className="hover:text-slate-900" href="/">
+            <HomeLinkScrollTop className="hover:text-slate-900">
               Acasa
-            </Link>
+            </HomeLinkScrollTop>
             <ScrollTopLink className="hover:text-slate-900" href="/listari">
               Listări
             </ScrollTopLink>
