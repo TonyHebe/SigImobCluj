@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { ContactMessageForm } from "@/components/ContactMessageForm";
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
 import { QuickRequestForm } from "@/components/QuickRequestForm";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
@@ -46,18 +45,18 @@ export default function HomePage() {
             <Link className="hover:text-slate-900" href="/servicii">
               Echipa
             </Link>
-            <a className="hover:text-slate-900" href="#contact">
+            <Link className="hover:text-slate-900" href="/contact">
               Contact
-            </a>
+            </Link>
           </nav>
 
           <div className="flex items-center gap-2">
-            <a
-              href="#contact"
+            <Link
+              href="/contact"
               className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
             >
               Programează o vizionare
-            </a>
+            </Link>
           </div>
         </div>
       </header>
@@ -91,12 +90,12 @@ export default function HomePage() {
                   >
                     Vezi listările recomandate
                   </ScrollTopLink>
-                  <a
-                    href="#contact"
+                  <Link
+                    href="/contact"
                     className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
                   >
                     Cere o ofertă personalizată
-                  </a>
+                  </Link>
                 </div>
 
                 <div className="mt-8 grid grid-cols-3 gap-4 rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm">
@@ -237,67 +236,13 @@ export default function HomePage() {
                 </p>
               </div>
               <div className="flex md:justify-end">
-                <a
-                  href="#contact"
+                <Link
+                  href="/contact"
                   className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
                 >
                   Cere evaluare gratuită
-                </a>
+                </Link>
               </div>
-            </div>
-          </div>
-        </section>
-
-        <section id="contact" className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <div className="grid gap-10 lg:grid-cols-2">
-            <div>
-              <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-                Contact
-              </h2>
-              <p className="mt-3 text-pretty text-sm text-slate-600 sm:text-base">
-                Spune‑ne ce cauți și îți trimitem opțiuni potrivite.
-              </p>
-
-              <div className="mt-6 grid gap-3">
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="text-sm font-semibold text-slate-900">
-                    Telefon
-                  </div>
-                  <div className="mt-2 text-sm text-slate-600">
-                    <a className="hover:text-slate-900" href="tel:+40755787617">
-                      +40755787617
-                    </a>
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="text-sm font-semibold text-slate-900">
-                    Email
-                  </div>
-                  <div className="mt-2 text-sm text-slate-600">
-                    <a
-                      className="hover:text-slate-900"
-                      href="mailto:jessicapana9@gmail.com"
-                    >
-                      jessicapana9@gmail.com
-                    </a>
-                  </div>
-                </div>
-                <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                  <div className="text-sm font-semibold text-slate-900">
-                    Program
-                  </div>
-                  <div className="mt-2 text-sm text-slate-600">
-                    Luni–Vineri: 09:00–18:00 • Sâmbătă: 10:00–14:00
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <div className="text-sm font-semibold text-slate-900">
-                Trimite un mesaj
-              </div>
-              <ContactMessageForm />
             </div>
           </div>
         </section>
@@ -325,9 +270,9 @@ export default function HomePage() {
               >
                 Echipa
               </a>
-              <a className="text-slate-600 hover:text-slate-900" href="#contact">
+              <Link className="text-slate-600 hover:text-slate-900" href="/contact">
                 Contact
-              </a>
+              </Link>
             </div>
           </div>
           <div className="mt-6 text-xs text-slate-500">
