@@ -87,14 +87,14 @@ export default function ServiciiPage() {
             <Link className="hover:text-slate-900" href="/servicii">
               Echipa
             </Link>
-            <Link className="hover:text-slate-900" href="/#contact">
+            <Link className="hover:text-slate-900" href="/contact">
               Contact
             </Link>
           </nav>
 
           <div className="flex items-center gap-2">
             <Link
-              href="/#contact"
+              href="/contact"
               className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
             >
               Programează o vizionare
@@ -131,7 +131,7 @@ export default function ServiciiPage() {
                     Vezi listările recomandate
                   </ScrollTopLink>
                   <Link
-                    href="/#contact"
+                    href="/contact"
                     className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
                   >
                     Cere o ofertă personalizată
@@ -216,7 +216,7 @@ export default function ServiciiPage() {
               </div>
               <div className="flex md:justify-end">
                 <Link
-                  href="/#contact"
+                  href="/contact"
                   className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
                 >
                   Contactează-ne

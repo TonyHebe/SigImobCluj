@@ -124,14 +124,14 @@ export default function ListariPage() {
             <Link className="hover:text-slate-900" href="/servicii">
               Echipa
             </Link>
-            <Link className="hover:text-slate-900" href="/#contact">
+            <Link className="hover:text-slate-900" href="/contact">
               Contact
             </Link>
           </nav>
 
           <div className="flex items-center gap-2">
             <Link
-              href="/#contact"
+              href="/contact"
               className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
             >
               Programează o vizionare
@@ -182,7 +182,7 @@ export default function ListariPage() {
           </p>
           <div className="mt-4">
             <Link
-              href="/#contact"
+              href="/contact"
               className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
             >
               Contactează-ne
