@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
+import { ScrollTopLink } from "@/components/ScrollTopLink";
 
 export const metadata: Metadata = {
   title: "Echipa | Sig Imobiliare Cluj",
@@ -80,9 +81,9 @@ export default function ServiciiPage() {
             <Link className="hover:text-slate-900" href="/">
               Acasa
             </Link>
-            <Link className="hover:text-slate-900" href="/listari">
+            <ScrollTopLink className="hover:text-slate-900" href="/listari">
               Listări
-            </Link>
+            </ScrollTopLink>
             <Link className="hover:text-slate-900" href="/servicii">
               Echipa
             </Link>
@@ -123,12 +124,12 @@ export default function ServiciiPage() {
                   prezentare, verificări, vizionări, negociere și documentație.
                 </p>
                 <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
-                  <Link
+                  <ScrollTopLink
                     href="/listari"
                     className="inline-flex items-center justify-center rounded-xl bg-sky-600 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
                   >
                     Vezi listările recomandate
-                  </Link>
+                  </ScrollTopLink>
                   <Link
                     href="/#contact"
                     className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
