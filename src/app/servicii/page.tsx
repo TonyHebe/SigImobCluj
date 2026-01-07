@@ -32,6 +32,29 @@ const services = [
   },
 ];
 
+const teamMembers = [
+  {
+    name: "Marius",
+    desc: "Consultant imobiliar — evaluare, strategie de listare și negociere.",
+  },
+  {
+    name: "Adrian",
+    desc: "Marketing & promovare — prezentare clară, campanii targetate și vizibilitate.",
+  },
+  {
+    name: "Elena",
+    desc: "Acte & suport tranzacție — verificări, coordonare notariat și pași administrativi.",
+  },
+  {
+    name: "Oana",
+    desc: "Relația cu clienții — programări, follow‑up rapid și comunicare constantă.",
+  },
+  {
+    name: "Cristian",
+    desc: "Analiză & investiții — comparații de piață, randamente și recomandări pragmatice.",
+  },
+] as const;
+
 function getTeamImageSrc() {
   const candidates = [
     "ba7f05ba11a94dd0ba5e84a117713a13.jpg",
@@ -199,6 +222,41 @@ export default function ServiciiPage() {
                 </div>
               ))}
             </div>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6">
+          <div className="flex flex-col gap-3">
+            <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              Echipa
+            </h2>
+            <p className="text-pretty text-sm text-slate-600 sm:text-base">
+              Câte un specialist pentru fiecare etapă: comunicare, marketing,
+              negociere și documentație.
+            </p>
+          </div>
+
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+            {teamMembers.map((m) => (
+              <div
+                key={m.name}
+                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"
+              >
+                <div className="flex items-start gap-3">
+                  <span className="inline-flex size-10 shrink-0 items-center justify-center rounded-xl bg-sky-50 text-sky-700">
+                    <span className="text-sm font-semibold">
+                      {m.name.slice(0, 1)}
+                    </span>
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold text-slate-900">
+                      {m.name}
+                    </h3>
+                    <p className="mt-2 text-sm text-slate-600">{m.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </section>
 
