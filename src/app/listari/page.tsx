@@ -311,23 +311,6 @@ export default async function ListariPage({ searchParams }: PageProps) {
             </section>
           </>
         )}
-
-        <div className="mt-12 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-          <div className="text-sm font-semibold text-slate-900">
-            Nu găsești ce cauți?
-          </div>
-          <p className="mt-2 text-sm text-slate-600">
-            Spune-ne bugetul și zona, iar revenim cu oferte potrivite.
-          </p>
-          <div className="mt-4">
-            <Link
-              href="/contact"
-              className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
-            >
-              Contactează-ne
-            </Link>
-          </div>
-        </div>
       </main>
     </div>
   );

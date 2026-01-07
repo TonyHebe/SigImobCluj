@@ -243,6 +243,27 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
+          <div className="grid items-center gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-3">
+            <div className="md:col-span-2">
+              <div className="text-sm font-semibold text-slate-900">
+                Nu găsești ce cauți?
+              </div>
+              <p className="mt-2 text-sm text-slate-600 sm:text-base">
+                Spune-ne bugetul și zona, iar revenim cu oferte potrivite.
+              </p>
+            </div>
+            <div className="flex md:justify-end">
+              <Link
+                href="/contact"
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
+              >
+                Contactează-ne
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
 
       <footer className="border-t border-slate-200/70 bg-white">
