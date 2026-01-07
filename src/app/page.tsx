@@ -1,10 +1,166 @@
+"use client";
+
+import Image from "next/image";
 import Link from "next/link";
+import { useMemo, useState } from "react";
 
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
+import type { QuickSearchFilters } from "@/components/QuickRequestForm";
 import { QuickRequestForm } from "@/components/QuickRequestForm";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
+import { featuredListings } from "@/lib/listings";
+
+function normalizeText(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+function listingNeighborhoodFromTitle(title: string) {
+  const parts = title.split("•").map((p) => p.trim()).filter(Boolean);
+  return parts.length >= 2 ? parts[parts.length - 1] : null;
+}
+
+function parseEuroAmount(value: string) {
+  const digits = value.replace(/[^\d]/g, "");
+  const amount = Number(digits);
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function parseBudgetRange(budget: string): { min: number; max: number } | null {
+  const b = budget.trim();
+  if (!b) return null;
+  if (b.includes("+")) {
+    const min = parseEuroAmount(b);
+    return min == null ? null : { min, max: Number.POSITIVE_INFINITY };
+  }
+  const [left, right] = b.split("–").map((x) => x.trim());
+  if (!left || !right) return null;
+  const min = parseEuroAmount(left);
+  const max = parseEuroAmount(right);
+  if (min == null || max == null) return null;
+  return { min, max };
+}
+
+function kindFromPropertyType(propertyType: string) {
+  switch (normalizeText(propertyType)) {
+    case "apartament":
+      return "apartment";
+    case "casa":
+      return "house";
+    case "teren":
+      return "land";
+    default:
+      return null;
+  }
+}
+
+function matchesFilters(listing: (typeof featuredListings)[number], f: QuickSearchFilters) {
+  const kind = kindFromPropertyType(f.propertyType);
+  if (kind && listing.kind !== kind) return false;
+
+  if (normalizeText(f.neighborhood) !== normalizeText("Oricare")) {
+    const n = listingNeighborhoodFromTitle(listing.title);
+    if (!n) return false;
+    if (normalizeText(n) !== normalizeText(f.neighborhood)) return false;
+  }
+
+  const range = parseBudgetRange(f.budget);
+  if (range) {
+    const price = parseEuroAmount(listing.price);
+    if (price == null) return false;
+    if (price < range.min || price > range.max) return false;
+  }
+
+  return true;
+}
+
+function ListingCard({ listing }: { listing: (typeof featuredListings)[number] }) {
+  return (
+    <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <div className="relative">
+        <div className="relative h-44 overflow-hidden bg-[linear-gradient(135deg,rgba(14,165,233,0.22),rgba(99,102,241,0.18))]">
+          <Image
+            src={listing.images[0].src}
+            alt={listing.images[0].alt}
+            fill
+            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            className="object-cover transition duration-300 ease-out group-hover:scale-105"
+            priority={listing.id === "apt-zorilor-3cam"}
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/30 via-slate-950/10 to-transparent"
+          />
+        </div>
+        <div className="absolute left-4 top-4 inline-flex items-center rounded-full bg-white/90 px-3 py-1 text-xs font-semibold text-slate-800 shadow-sm">
+          {listing.badge}
+        </div>
+      </div>
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h3 className="text-base font-semibold text-slate-900">
+              <Link
+                href={`/oferte/${listing.id}`}
+                className="outline-none hover:underline focus-visible:rounded focus-visible:ring-2 focus-visible:ring-sky-200"
+              >
+                {listing.title}
+              </Link>
+            </h3>
+            <p className="mt-1 text-sm text-slate-600">{listing.subtitle}</p>
+          </div>
+          <div className="shrink-0 rounded-xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white">
+            {listing.price}
+          </div>
+        </div>
+
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {listing.details.map((d) => (
+            <li
+              key={d}
+              className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700"
+            >
+              {d}
+            </li>
+          ))}
+        </ul>
+
+        <div className="mt-5 flex items-center justify-between">
+          <Link
+            href={`/oferte/${listing.id}`}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-sky-700 hover:text-sky-800"
+          >
+            Vezi detalii
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="size-4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
+              <path d="M5 12h14" />
+              <path d="m13 5 7 7-7 7" />
+            </svg>
+          </Link>
+          <span className="text-xs text-slate-500">ID: {listing.id}</span>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export default function HomePage() {
+  const [appliedFilters, setAppliedFilters] = useState<QuickSearchFilters | null>(null);
+
+  const filteredListings = useMemo(() => {
+    if (!appliedFilters) return featuredListings;
+    return featuredListings.filter((l) => matchesFilters(l, appliedFilters));
+  }, [appliedFilters]);
+
   return (
     <div className="min-h-dvh">
       <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur">
@@ -133,7 +289,7 @@ export default function HomePage() {
                       Caută rapid
                     </div>
                     <div className="mt-1 text-sm text-slate-600">
-                      Completează câteva detalii — revenim cu opțiuni potrivite.
+                      Alege criteriile și apasă “Cauta” pentru a vedea ofertele potrivite.
                     </div>
                   </div>
                   <div className="hidden items-center gap-1 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600 sm:flex">
@@ -152,8 +308,41 @@ export default function HomePage() {
                   </div>
                 </div>
 
-                <QuickRequestForm />
+                <QuickRequestForm onSearch={setAppliedFilters} />
               </div>
+            </div>
+
+            <div className="mt-10">
+              <div className="flex items-end justify-between gap-4">
+                <div>
+                  <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+                    {appliedFilters ? "Oferte potrivite" : "Oferte recomandate"}
+                  </h2>
+                  <p className="mt-2 text-sm text-slate-600">
+                    {appliedFilters
+                      ? `Afișăm ${filteredListings.length} rezultate pentru criteriile selectate.`
+                      : `Afișăm ${featuredListings.length} oferte disponibile.`}
+                  </p>
+                </div>
+                <ScrollTopLink
+                  href="/listari"
+                  className="hidden items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50 sm:inline-flex"
+                >
+                  Vezi toate
+                </ScrollTopLink>
+              </div>
+
+              {filteredListings.length ? (
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {filteredListings.map((l) => (
+                    <ListingCard key={l.id} listing={l} />
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-sm">
+                  Nu există oferte care să se potrivească acestor criterii.
+                </div>
+              )}
             </div>
           </div>
         </section>
