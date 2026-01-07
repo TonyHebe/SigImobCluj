@@ -245,7 +245,7 @@ export default function HomePage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-          <div className="grid items-center gap-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-3">
+          <div className="grid items-center gap-6 rounded-2xl border border-slate-200 bg-white p-6 md:grid-cols-3">
             <div className="md:col-span-2">
               <div className="text-sm font-semibold text-slate-900">
                 Nu găsești ce cauți?
@@ -257,7 +257,7 @@ export default function HomePage() {
             <div className="flex md:justify-end">
               <Link
                 href="/contact"
-                className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-600 px-5 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
+                className="inline-flex h-12 min-w-[200px] items-center justify-start rounded-xl bg-sky-600 pl-7 pr-8 text-base font-semibold text-white shadow-sm hover:bg-sky-500"
               >
                 Contactează-ne
               </Link>

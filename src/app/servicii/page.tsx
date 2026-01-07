@@ -268,7 +268,7 @@ export default function ServiciiPage() {
               <div className="flex md:justify-end">
                 <Link
                   href="/contact"
-                  className="inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                  className="inline-flex min-w-[200px] items-center justify-start rounded-xl bg-white py-3 pl-7 pr-8 text-base font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
                 >
                   Contactează-ne
                 </Link>
