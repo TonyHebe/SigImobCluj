@@ -241,7 +241,7 @@ export default async function ListariPage({ searchParams }: PageProps) {
 
           <div className="flex items-center gap-2">
             <Link
-              href="/contact"
+              href="/vizionare"
               className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
             >
               Programează o vizionare
