@@ -10,7 +10,7 @@ type Mode = "login" | "signup";
 
 function getAdminKeyExpected() {
   // Note: NEXT_PUBLIC_* is exposed to the browser; this is only a simple gate for demo use.
-  return process.env.NEXT_PUBLIC_ADMIN_KEY || "admin";
+  return process.env.NEXT_PUBLIC_ADMIN_KEY || "123456";
 }
 
 export function LoginPageClient({ nextPath }: { nextPath: string }) {
@@ -253,7 +253,7 @@ export function LoginPageClient({ nextPath }: { nextPath: string }) {
             <div className="mt-1">
               Set <span className="font-semibold">NEXT_PUBLIC_ADMIN_KEY</span>{" "}
               in your environment to change the admin key (default is{" "}
-              <span className="font-semibold">admin</span>).
+              <span className="font-semibold">123456</span>).
             </div>
           </div>
         </div>
