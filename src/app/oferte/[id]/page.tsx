@@ -79,7 +79,7 @@ export default async function OfferDetailsPage({ params }: PageProps) {
               Înapoi la listări
             </ScrollTopLink>
             <Link
-              href="/contact"
+              href="/vizionare"
               className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
             >
               Programează o vizionare
@@ -168,7 +168,7 @@ export default async function OfferDetailsPage({ params }: PageProps) {
 
               <div className="mt-6 grid gap-3">
                 <Link
-                  href="/contact"
+                  href="/vizionare"
                   className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
                 >
                   Cere detalii / programează vizionare
