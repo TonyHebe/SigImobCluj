@@ -2,8 +2,56 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
+import { QuickRequestForm } from "@/components/QuickRequestForm";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { featuredListings } from "@/lib/listings";
+
+function normalizeText(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+}
+
+function listingNeighborhoodFromTitle(title: string) {
+  const parts = title.split("•").map((p) => p.trim()).filter(Boolean);
+  return parts.length >= 2 ? parts[parts.length - 1] : null;
+}
+
+function parseEuroAmount(value: string) {
+  const digits = value.replace(/[^\d]/g, "");
+  const amount = Number(digits);
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function parseBudgetRange(budget: string): { min: number; max: number } | null {
+  const b = budget.trim();
+  if (!b) return null;
+  if (b.includes("+")) {
+    const min = parseEuroAmount(b);
+    return min == null ? null : { min, max: Number.POSITIVE_INFINITY };
+  }
+  const [left, right] = b.split("–").map((x) => x.trim());
+  if (!left || !right) return null;
+  const min = parseEuroAmount(left);
+  const max = parseEuroAmount(right);
+  if (min == null || max == null) return null;
+  return { min, max };
+}
+
+function kindFromPropertyType(propertyType: string) {
+  switch (normalizeText(propertyType)) {
+    case "apartament":
+      return "apartment";
+    case "casa":
+      return "house";
+    case "teren":
+      return "land";
+    default:
+      return null;
+  }
+}
 
 function ListingCard({
   listing,
@@ -85,7 +133,62 @@ function ListingCard({
   );
 }
 
-export default function ListariPage() {
+type SearchParams = Record<string, string | string[] | undefined>;
+
+function getSearchParam(sp: SearchParams | undefined, key: string) {
+  const v = sp?.[key];
+  return Array.isArray(v) ? v[0] : v;
+}
+
+function hasActiveFilters(filters: {
+  propertyType: string;
+  neighborhood: string;
+  budget: string;
+  id: string;
+}) {
+  const propertyTypeActive = normalizeText(filters.propertyType) !== normalizeText("Oricare");
+  const neighborhoodActive = normalizeText(filters.neighborhood) !== normalizeText("Oricare");
+  const budgetActive = !!filters.budget.trim();
+  const idActive = !!filters.id.trim();
+  return propertyTypeActive || neighborhoodActive || budgetActive || idActive;
+}
+
+export default function ListariPage({ searchParams }: { searchParams?: SearchParams }) {
+  const filters = {
+    propertyType: getSearchParam(searchParams, "propertyType") ?? "Oricare",
+    neighborhood: getSearchParam(searchParams, "neighborhood") ?? "Oricare",
+    budget: getSearchParam(searchParams, "budget") ?? "",
+    id: getSearchParam(searchParams, "id") ?? "",
+  };
+
+  const active = hasActiveFilters(filters);
+
+  const filtered = active
+    ? featuredListings.filter((listing) => {
+        const kind = kindFromPropertyType(filters.propertyType);
+        if (kind && listing.kind !== kind) return false;
+
+        if (normalizeText(filters.neighborhood) !== normalizeText("Oricare")) {
+          const n = listingNeighborhoodFromTitle(listing.title);
+          if (!n) return false;
+          if (normalizeText(n) !== normalizeText(filters.neighborhood)) return false;
+        }
+
+        const range = parseBudgetRange(filters.budget);
+        if (range) {
+          const price = parseEuroAmount(listing.price);
+          if (price == null) return false;
+          if (price < range.min || price > range.max) return false;
+        }
+
+        if (filters.id.trim()) {
+          if (normalizeText(listing.id) !== normalizeText(filters.id)) return false;
+        }
+
+        return true;
+      })
+    : featuredListings;
+
   const apartments = featuredListings.filter((l) => l.kind === "apartment");
   const houses = featuredListings.filter((l) => l.kind === "house");
 
@@ -141,6 +244,8 @@ export default function ListariPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <QuickRequestForm action="/listari" variant="bar" defaultValues={filters} />
+
         <div className="flex flex-col gap-2">
           <h1 className="text-balance text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
             Listări: apartamente & case
@@ -149,29 +254,56 @@ export default function ListariPage() {
             Aici găsești toate apartamentele și casele. (Terenurile sunt pe alt
             flux.)
           </p>
+          {active ? (
+            <p className="text-sm text-slate-600">
+              Rezultate:{" "}
+              <span className="font-semibold text-slate-900">{filtered.length}</span>
+            </p>
+          ) : null}
         </div>
 
-        <section className="mt-10">
-          <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-            Apartamente
-          </h2>
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {apartments.map((l) => (
-              <ListingCard key={l.id} listing={l} />
-            ))}
-          </div>
-        </section>
+        {active ? (
+          <section className="mt-10">
+            <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+              Rezultate
+            </h2>
+            {filtered.length ? (
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {filtered.map((l) => (
+                  <ListingCard key={l.id} listing={l} />
+                ))}
+              </div>
+            ) : (
+              <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-sm">
+                Nu există oferte care să se potrivească acestor criterii.
+              </div>
+            )}
+          </section>
+        ) : (
+          <>
+            <section className="mt-10">
+              <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+                Apartamente
+              </h2>
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {apartments.map((l) => (
+                  <ListingCard key={l.id} listing={l} />
+                ))}
+              </div>
+            </section>
 
-        <section className="mt-12">
-          <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
-            Case
-          </h2>
-          <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {houses.map((l) => (
-              <ListingCard key={l.id} listing={l} />
-            ))}
-          </div>
-        </section>
+            <section className="mt-12">
+              <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+                Case
+              </h2>
+              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {houses.map((l) => (
+                  <ListingCard key={l.id} listing={l} />
+                ))}
+              </div>
+            </section>
+          </>
+        )}
 
         <div className="mt-12 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="text-sm font-semibold text-slate-900">
