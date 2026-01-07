@@ -36,9 +36,6 @@ export default function HomePage() {
             <HomeLinkScrollTop className="hover:text-slate-900">
               Acasa
             </HomeLinkScrollTop>
-            <a className="hover:text-slate-900" href="#despre-noi">
-              Despre noi
-            </a>
             <ScrollTopLink className="hover:text-slate-900" href="/listari">
               Listări
             </ScrollTopLink>

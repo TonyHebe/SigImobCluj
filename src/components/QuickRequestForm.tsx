@@ -1,8 +1,20 @@
+"use client";
+
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+
 export type QuickSearchFilters = {
   propertyType: string;
   neighborhood: string;
   budget: string;
   id: string;
+};
+
+const RESET_FILTERS: QuickSearchFilters = {
+  propertyType: "Oricare",
+  neighborhood: "Oricare",
+  budget: "",
+  id: "",
 };
 
 export function QuickRequestForm({
@@ -14,10 +26,41 @@ export function QuickRequestForm({
   variant?: "stacked" | "bar";
   defaultValues?: Partial<QuickSearchFilters>;
 }) {
-  const propertyType = defaultValues?.propertyType ?? "Apartament";
-  const neighborhood = defaultValues?.neighborhood ?? "Oricare";
-  const budget = defaultValues?.budget ?? "";
-  const id = defaultValues?.id ?? "";
+  const router = useRouter();
+
+  const initial = useMemo<QuickSearchFilters>(
+    () => ({
+      propertyType: defaultValues?.propertyType ?? "Apartament",
+      neighborhood: defaultValues?.neighborhood ?? "Oricare",
+      budget: defaultValues?.budget ?? "",
+      id: defaultValues?.id ?? "",
+    }),
+    [defaultValues?.budget, defaultValues?.id, defaultValues?.neighborhood, defaultValues?.propertyType],
+  );
+
+  const [propertyType, setPropertyType] = useState(initial.propertyType);
+  const [neighborhood, setNeighborhood] = useState(initial.neighborhood);
+  const [budget, setBudget] = useState(initial.budget);
+  const [id, setId] = useState(initial.id);
+
+  const handleReset = () => {
+    setPropertyType(RESET_FILTERS.propertyType);
+    setNeighborhood(RESET_FILTERS.neighborhood);
+    setBudget(RESET_FILTERS.budget);
+    setId(RESET_FILTERS.id);
+
+    const isAlreadyClean =
+      typeof window === "undefined"
+        ? false
+        : window.location.pathname === action && !window.location.search;
+    if (isAlreadyClean) {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      router.refresh();
+      return;
+    }
+
+    router.push(action);
+  };
 
   return (
     <form
@@ -40,7 +83,8 @@ export function QuickRequestForm({
           <span className="text-slate-700">Tip proprietate</span>
           <select
             name="propertyType"
-            defaultValue={propertyType}
+            value={propertyType}
+            onChange={(e) => setPropertyType(e.target.value)}
             className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
           >
             <option>Oricare</option>
@@ -54,7 +98,8 @@ export function QuickRequestForm({
           <span className="text-slate-700">Cartier</span>
           <select
             name="neighborhood"
-            defaultValue={neighborhood}
+            value={neighborhood}
+            onChange={(e) => setNeighborhood(e.target.value)}
             className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
           >
             <option>Oricare</option>
@@ -70,7 +115,8 @@ export function QuickRequestForm({
           <span className="text-slate-700">Buget</span>
           <select
             name="budget"
-            defaultValue={budget}
+            value={budget}
+            onChange={(e) => setBudget(e.target.value)}
             className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
           >
             <option value="">Oricare</option>
@@ -86,23 +132,49 @@ export function QuickRequestForm({
           <span className="text-slate-700">ID</span>
           <input
             name="id"
-            defaultValue={id}
+            value={id}
+            onChange={(e) => setId(e.target.value)}
             placeholder="Ex: apt-zorilor-3cam"
             className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-200"
           />
         </label>
       </div>
 
-      <button
-        type="submit"
+      <div
         className={
           variant === "bar"
-            ? "inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 md:shrink-0"
-            : "mt-1 inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+            ? "flex items-center gap-2 md:shrink-0"
+            : "mt-1 flex items-center gap-2"
         }
       >
-        Cauta
-      </button>
+        <button
+          type="button"
+          onClick={handleReset}
+          aria-label="Resetează filtrele"
+          title="Resetează"
+          className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+        >
+          <svg
+            aria-hidden="true"
+            viewBox="0 0 24 24"
+            className="mr-2 size-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+            <path d="M21 3v6h-6" />
+          </svg>
+          Refresh
+        </button>
+
+        <button
+          type="submit"
+          className="inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-6 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+        >
+          Cauta
+        </button>
+      </div>
     </form>
   );
 }
