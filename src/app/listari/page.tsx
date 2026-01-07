@@ -153,12 +153,19 @@ function hasActiveFilters(filters: {
   return propertyTypeActive || neighborhoodActive || budgetActive || idActive;
 }
 
-export default function ListariPage({ searchParams }: { searchParams?: SearchParams }) {
+type PageProps = {
+  searchParams?: Promise<SearchParams>;
+};
+
+export default async function ListariPage({ searchParams }: PageProps) {
+  const resolvedSearchParams = (await searchParams) ?? undefined;
   const filters = {
-    propertyType: getSearchParam(searchParams, "propertyType") ?? "Oricare",
-    neighborhood: getSearchParam(searchParams, "neighborhood") ?? "Oricare",
-    budget: getSearchParam(searchParams, "budget") ?? "",
-    id: getSearchParam(searchParams, "id") ?? "",
+    propertyType:
+      getSearchParam(resolvedSearchParams, "propertyType") ?? "Oricare",
+    neighborhood:
+      getSearchParam(resolvedSearchParams, "neighborhood") ?? "Oricare",
+    budget: getSearchParam(resolvedSearchParams, "budget") ?? "",
+    id: getSearchParam(resolvedSearchParams, "id") ?? "",
   };
 
   const active = hasActiveFilters(filters);
@@ -243,10 +250,10 @@ export default function ListariPage({ searchParams }: { searchParams?: SearchPar
         </div>
       </header>
 
-      <main className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+      <main className="mx-auto max-w-6xl px-4 pb-12 pt-16 sm:px-6">
         <QuickRequestForm action="/listari" variant="bar" defaultValues={filters} />
 
-        <div className="flex flex-col gap-2">
+        <div className="mt-10 flex flex-col gap-2">
           <h1 className="text-balance text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
             Listări: apartamente & case
           </h1>
