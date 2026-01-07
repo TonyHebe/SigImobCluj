@@ -1,0 +1,641 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+
+import { ScrollTopLink } from "@/components/ScrollTopLink";
+import { getAuthSnapshot } from "@/lib/authClient";
+import type { Listing } from "@/lib/listings";
+import { featuredListings } from "@/lib/listings";
+import {
+  deleteListing,
+  resetListings,
+  upsertListing,
+  useListings,
+} from "@/lib/listingsStore";
+
+type DraftImage = {
+  src: string;
+  alt: string;
+};
+
+type DraftListing = {
+  id: string;
+  kind: Listing["kind"];
+  badge: string;
+  title: string;
+  subtitle: string;
+  price: string;
+  detailsText: string;
+  description: string;
+  images: DraftImage[];
+};
+
+function normalizeId(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "-")
+    .replace(/[^a-z0-9-]/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function detailsToText(details: readonly string[]) {
+  return details.join("\n");
+}
+
+function textToDetails(text: string) {
+  return text
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function listingToDraft(l: Listing): DraftListing {
+  return {
+    id: l.id,
+    kind: l.kind,
+    badge: l.badge,
+    title: l.title,
+    subtitle: l.subtitle,
+    price: l.price,
+    detailsText: detailsToText(l.details),
+    description: l.description,
+    images: l.images.map((img) => ({ src: img.src, alt: img.alt })),
+  };
+}
+
+function emptyDraft(): DraftListing {
+  return {
+    id: "",
+    kind: "apartment",
+    badge: "Nou",
+    title: "",
+    subtitle: "",
+    price: "",
+    detailsText: "",
+    description: "",
+    images: [{ src: "", alt: "" }],
+  };
+}
+
+async function fileToDataUrl(file: File): Promise<string> {
+  return await new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Failed to read file."));
+    reader.onload = () => resolve(String(reader.result ?? ""));
+    reader.readAsDataURL(file);
+  });
+}
+
+export function AdminOferteClient() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit") ?? "";
+  const isNew = searchParams.get("new") === "1";
+
+  const auth = (() => {
+    try {
+      return getAuthSnapshot();
+    } catch {
+      return { isAuthed: false, role: "user" as const, email: "" };
+    }
+  })();
+
+  const isAdmin = auth.isAuthed && auth.role === "admin";
+  const listings = useListings(featuredListings);
+
+  const [editingOriginalId, setEditingOriginalId] = useState<string | null>(null);
+  const [draft, setDraft] = useState<DraftListing>(() => emptyDraft());
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const selectedListing = useMemo(() => {
+    if (!editId) return null;
+    return listings.find((l) => l.id === editId) ?? null;
+  }, [editId, listings]);
+
+  useEffect(() => {
+    setError(null);
+    setNotice(null);
+
+    if (isNew) {
+      setEditingOriginalId(null);
+      setDraft(emptyDraft());
+      return;
+    }
+    if (selectedListing) {
+      setEditingOriginalId(selectedListing.id);
+      setDraft(listingToDraft(selectedListing));
+      return;
+    }
+    if (editId) {
+      setEditingOriginalId(editId);
+      setDraft((d) => ({ ...d, id: editId }));
+    }
+  }, [editId, isNew, selectedListing]);
+
+  if (!isAdmin) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-10 sm:px-6">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="text-sm font-semibold text-slate-900">
+            Acces restricționat
+          </div>
+          <p className="mt-2 text-sm text-slate-600">
+            Pagina de administrare este disponibilă doar pentru admin.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <ScrollTopLink
+              href="/listari"
+              className="inline-flex h-11 items-center justify-center rounded-xl bg-slate-900 px-5 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+            >
+              Înapoi la listări
+            </ScrollTopLink>
+            <Link
+              href="/login?next=/admin/oferte"
+              className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-5 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+            >
+              Log in
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const total = listings.length;
+
+  const handleSave = () => {
+    setError(null);
+    setNotice(null);
+
+    const id = normalizeId(draft.id);
+    if (!id) {
+      setError("ID-ul este obligatoriu (ex: apt-zorilor-3cam).");
+      return;
+    }
+
+    const title = draft.title.trim();
+    if (!title) {
+      setError("Titlul este obligatoriu.");
+      return;
+    }
+
+    const images = draft.images
+      .map((img) => ({ src: img.src.trim(), alt: img.alt.trim() }))
+      .filter((img) => img.src);
+
+    if (!images.length) {
+      setError("Adaugă cel puțin o poză (URL sau upload).");
+      return;
+    }
+
+    const listing: Listing = {
+      id,
+      kind: draft.kind,
+      badge: draft.badge.trim(),
+      title,
+      subtitle: draft.subtitle.trim(),
+      price: draft.price.trim(),
+      details: textToDetails(draft.detailsText),
+      description: draft.description.trim(),
+      images: images.map((img) => ({
+        src: img.src,
+        alt: img.alt || title,
+      })),
+    };
+
+    // Handle rename (ID changed)
+    if (editingOriginalId && editingOriginalId !== id) {
+      deleteListing(featuredListings, editingOriginalId);
+    }
+
+    upsertListing(featuredListings, listing);
+    setEditingOriginalId(id);
+    setNotice("Salvat.");
+    router.replace(`/admin/oferte?edit=${encodeURIComponent(id)}`);
+  };
+
+  return (
+    <div className="min-h-dvh">
+      <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+          <div className="flex flex-col">
+            <div className="text-sm font-semibold text-slate-900">
+              Admin • Oferte
+            </div>
+            <div className="text-xs text-slate-500">Total: {total}</div>
+          </div>
+
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <ScrollTopLink
+              href="/listari"
+              className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+            >
+              Înapoi la listări
+            </ScrollTopLink>
+            <Link
+              href="/admin/oferte?new=1"
+              className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+            >
+              + Ofertă nouă
+            </Link>
+            <button
+              type="button"
+              className="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-800 shadow-sm hover:bg-rose-100"
+              onClick={() => {
+                const ok = window.confirm(
+                  "Resetezi toate ofertele la valorile inițiale (din cod)?",
+                );
+                if (!ok) return;
+                resetListings();
+                setNotice("Reset făcut.");
+                router.replace("/admin/oferte");
+              }}
+            >
+              Reset la default
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-5">
+        <section className="lg:col-span-3">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="text-sm font-semibold text-slate-900">
+                  {editingOriginalId ? "Editează ofertă" : "Creează ofertă"}
+                </div>
+                <div className="mt-1 text-xs text-slate-500">
+                  Modificările se salvează local (în browser) și se văd imediat
+                  pe listări.
+                </div>
+              </div>
+
+              {editingOriginalId ? (
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-500"
+                  onClick={() => {
+                    const ok = window.confirm(
+                      `Ștergi oferta (ID: ${editingOriginalId})?`,
+                    );
+                    if (!ok) return;
+                    deleteListing(featuredListings, editingOriginalId);
+                    setEditingOriginalId(null);
+                    setDraft(emptyDraft());
+                    setNotice("Șters.");
+                    router.replace("/admin/oferte");
+                  }}
+                >
+                  Șterge
+                </button>
+              ) : null}
+            </div>
+
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-1 text-sm">
+                <span className="font-semibold text-slate-900">ID</span>
+                <input
+                  value={draft.id}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, id: e.target.value }))
+                  }
+                  placeholder="apt-zorilor-3cam"
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+                <span className="text-xs text-slate-500">
+                  Va fi normalizat la:{" "}
+                  <span className="font-semibold">
+                    {draft.id ? normalizeId(draft.id) : "—"}
+                  </span>
+                </span>
+              </label>
+
+              <label className="grid gap-1 text-sm">
+                <span className="font-semibold text-slate-900">Tip</span>
+                <select
+                  value={draft.kind}
+                  onChange={(e) =>
+                    setDraft((d) => ({
+                      ...d,
+                      kind: e.target.value as Listing["kind"],
+                    }))
+                  }
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                >
+                  <option value="apartment">Apartament</option>
+                  <option value="house">Casă</option>
+                  <option value="land">Teren</option>
+                </select>
+              </label>
+
+              <label className="grid gap-1 text-sm sm:col-span-2">
+                <span className="font-semibold text-slate-900">Badge</span>
+                <input
+                  value={draft.badge}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, badge: e.target.value }))
+                  }
+                  placeholder="Exclusivitate / Nou / Recomandat"
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+              </label>
+
+              <label className="grid gap-1 text-sm sm:col-span-2">
+                <span className="font-semibold text-slate-900">Titlu</span>
+                <input
+                  value={draft.title}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, title: e.target.value }))
+                  }
+                  placeholder="Apartament 3 camere • Zorilor"
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+              </label>
+
+              <label className="grid gap-1 text-sm sm:col-span-2">
+                <span className="font-semibold text-slate-900">Subtitlu</span>
+                <input
+                  value={draft.subtitle}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, subtitle: e.target.value }))
+                  }
+                  placeholder="Terasa, parcare, aproape de UMF"
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+              </label>
+
+              <label className="grid gap-1 text-sm">
+                <span className="font-semibold text-slate-900">Preț</span>
+                <input
+                  value={draft.price}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, price: e.target.value }))
+                  }
+                  placeholder="189.000 €"
+                  className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+              </label>
+
+              <label className="grid gap-1 text-sm">
+                <span className="font-semibold text-slate-900">
+                  Detalii (1 / rând)
+                </span>
+                <textarea
+                  value={draft.detailsText}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, detailsText: e.target.value }))
+                  }
+                  rows={4}
+                  placeholder={"78 m²\n3 camere\n2 băi\nEt. 3/6"}
+                  className="min-h-[8rem] rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+              </label>
+
+              <label className="grid gap-1 text-sm sm:col-span-2">
+                <span className="font-semibold text-slate-900">Descriere</span>
+                <textarea
+                  value={draft.description}
+                  onChange={(e) =>
+                    setDraft((d) => ({ ...d, description: e.target.value }))
+                  }
+                  rows={5}
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                />
+              </label>
+            </div>
+
+            <div className="mt-8">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="text-sm font-semibold text-slate-900">Poze</div>
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                  onClick={() => {
+                    setDraft((d) => ({
+                      ...d,
+                      images: [...d.images, { src: "", alt: "" }].slice(0, 6),
+                    }));
+                  }}
+                >
+                  + poză
+                </button>
+              </div>
+
+              <div className="mt-4 grid gap-4">
+                {draft.images.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-sm font-semibold text-slate-900">
+                        Poză #{idx + 1}
+                      </div>
+                      <button
+                        type="button"
+                        className="text-sm font-semibold text-rose-700 hover:text-rose-800"
+                        onClick={() => {
+                          setDraft((d) => ({
+                            ...d,
+                            images: d.images.filter((_, i) => i !== idx),
+                          }));
+                        }}
+                      >
+                        Șterge
+                      </button>
+                    </div>
+
+                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <label className="grid gap-1 text-sm">
+                        <span className="text-slate-700">URL / Data URL</span>
+                        <input
+                          value={img.src}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setDraft((d) => ({
+                              ...d,
+                              images: d.images.map((x, i) =>
+                                i === idx ? { ...x, src: v } : x,
+                              ),
+                            }));
+                          }}
+                          placeholder="https://… sau data:image/…"
+                          className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                        />
+                      </label>
+
+                      <label className="grid gap-1 text-sm">
+                        <span className="text-slate-700">Alt text</span>
+                        <input
+                          value={img.alt}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            setDraft((d) => ({
+                              ...d,
+                              images: d.images.map((x, i) =>
+                                i === idx ? { ...x, alt: v } : x,
+                              ),
+                            }));
+                          }}
+                          placeholder="Ex: Living luminos"
+                          className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                        />
+                      </label>
+
+                      <label className="grid gap-1 text-sm sm:col-span-2">
+                        <span className="text-slate-700">
+                          Upload (se salvează ca data URL)
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="block w-full text-sm text-slate-700 file:mr-4 file:rounded-xl file:border-0 file:bg-slate-900 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-800"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const dataUrl = await fileToDataUrl(file);
+                            setDraft((d) => ({
+                              ...d,
+                              images: d.images.map((x, i) =>
+                                i === idx
+                                  ? {
+                                      ...x,
+                                      src: dataUrl,
+                                      alt: x.alt || file.name,
+                                    }
+                                  : x,
+                              ),
+                            }));
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    {img.src ? (
+                      <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                        <img
+                          src={img.src}
+                          alt={img.alt || draft.title || "Preview"}
+                          className="h-44 w-full object-cover"
+                          loading="lazy"
+                        />
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {error ? (
+              <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                {error}
+              </div>
+            ) : null}
+            {notice ? (
+              <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                {notice}
+              </div>
+            ) : null}
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button
+                type="button"
+                className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-600 px-6 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
+                onClick={handleSave}
+              >
+                Salvează
+              </button>
+              <button
+                type="button"
+                className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                onClick={() => {
+                  setError(null);
+                  setNotice(null);
+                  if (selectedListing) {
+                    setEditingOriginalId(selectedListing.id);
+                    setDraft(listingToDraft(selectedListing));
+                    return;
+                  }
+                  if (isNew) {
+                    setEditingOriginalId(null);
+                    setDraft(emptyDraft());
+                    return;
+                  }
+                }}
+              >
+                Reset formular
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <aside className="lg:col-span-2">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold text-slate-900">
+                Oferte existente
+              </div>
+              <Link
+                href="/admin/oferte"
+                className="text-sm font-semibold text-sky-700 hover:text-sky-800"
+              >
+                Clear
+              </Link>
+            </div>
+
+            <div className="mt-4 grid gap-3">
+              {listings.map((l) => (
+                <div
+                  key={l.id}
+                  className="flex items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"
+                >
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-semibold text-slate-900">
+                      {l.title}
+                    </div>
+                    <div className="mt-1 truncate text-xs text-slate-600">
+                      ID: {l.id}
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Link
+                      href={`/admin/oferte?edit=${encodeURIComponent(l.id)}`}
+                      className="inline-flex items-center justify-center rounded-lg bg-white px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      type="button"
+                      className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-rose-500"
+                      onClick={() => {
+                        const ok = window.confirm(
+                          `Ștergi oferta “${l.title}” (ID: ${l.id})?`,
+                        );
+                        if (!ok) return;
+                        deleteListing(featuredListings, l.id);
+                        if (editingOriginalId === l.id) {
+                          setEditingOriginalId(null);
+                          setDraft(emptyDraft());
+                          router.replace("/admin/oferte");
+                        }
+                      }}
+                    >
+                      Del
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+  );
+}
+
