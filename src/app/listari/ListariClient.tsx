@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
 import { QuickRequestForm } from "@/components/QuickRequestForm";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { getAuthSnapshot } from "@/lib/authClient";
-import { featuredListings, type Listing } from "@/lib/listings";
-import { deleteListing, useListings } from "@/lib/listingsStore";
+import type { Listing } from "@/lib/listings";
+import { deleteListingRemote } from "@/lib/listingsRemote";
+import { useListingsRemote } from "@/lib/useListingsRemote";
 
 function normalizeText(value: string) {
   return value
@@ -61,9 +62,13 @@ function kindFromPropertyType(propertyType: string) {
 function ListingCard({
   listing,
   isAdmin,
+  onDelete,
+  isDeleting,
 }: {
   listing: Listing;
   isAdmin: boolean;
+  onDelete?: (id: string) => void;
+  isDeleting?: boolean;
 }) {
   const cover = listing.images[0];
   return (
@@ -99,15 +104,16 @@ function ListingCard({
             <button
               type="button"
               className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-rose-500"
+              disabled={isDeleting}
               onClick={() => {
                 const ok = window.confirm(
                   `Ștergi oferta “${listing.title}” (ID: ${listing.id})?`,
                 );
                 if (!ok) return;
-                deleteListing(featuredListings, listing.id);
+                onDelete?.(listing.id);
               }}
             >
-              Șterge
+              {isDeleting ? "Șterg…" : "Șterge"}
             </button>
           </div>
         ) : null}
@@ -200,7 +206,9 @@ export function ListariClientPage({
   })();
 
   const isAdmin = auth.isAuthed && auth.role === "admin";
-  const listings = useListings(featuredListings);
+  const { listings, isLoading, error, refetch } = useListingsRemote();
+  const [deleteBusyId, setDeleteBusyId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const active = useMemo(() => hasActiveFilters(filters), [filters]);
 
@@ -306,6 +314,17 @@ export function ListariClientPage({
           defaultValues={filters}
         />
 
+        {error || deleteError ? (
+          <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+            {deleteError ?? error}
+          </div>
+        ) : null}
+        {isLoading ? (
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
+            Se încarcă ofertele…
+          </div>
+        ) : null}
+
         <div className="mt-10 flex flex-col gap-2">
           <h1 className="text-balance text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl">
             Listări: apartamente & case
@@ -332,7 +351,30 @@ export function ListariClientPage({
             {filtered.length ? (
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {filtered.map((l) => (
-                  <ListingCard key={l.id} listing={l} isAdmin={isAdmin} />
+                  <ListingCard
+                    key={l.id}
+                    listing={l}
+                    isAdmin={isAdmin}
+                    isDeleting={deleteBusyId === l.id}
+                    onDelete={
+                      isAdmin
+                        ? async (id) => {
+                            setDeleteError(null);
+                            setDeleteBusyId(id);
+                            try {
+                              await deleteListingRemote(id);
+                              refetch();
+                            } catch (err) {
+                              const message =
+                                err instanceof Error ? err.message : String(err);
+                              setDeleteError(message || "Eroare la ștergere.");
+                            } finally {
+                              setDeleteBusyId(null);
+                            }
+                          }
+                        : undefined
+                    }
+                  />
                 ))}
               </div>
             ) : (
@@ -359,7 +401,30 @@ export function ListariClientPage({
               </div>
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {apartments.map((l) => (
-                  <ListingCard key={l.id} listing={l} isAdmin={isAdmin} />
+                  <ListingCard
+                    key={l.id}
+                    listing={l}
+                    isAdmin={isAdmin}
+                    isDeleting={deleteBusyId === l.id}
+                    onDelete={
+                      isAdmin
+                        ? async (id) => {
+                            setDeleteError(null);
+                            setDeleteBusyId(id);
+                            try {
+                              await deleteListingRemote(id);
+                              refetch();
+                            } catch (err) {
+                              const message =
+                                err instanceof Error ? err.message : String(err);
+                              setDeleteError(message || "Eroare la ștergere.");
+                            } finally {
+                              setDeleteBusyId(null);
+                            }
+                          }
+                        : undefined
+                    }
+                  />
                 ))}
               </div>
             </section>
@@ -370,7 +435,30 @@ export function ListariClientPage({
               </h2>
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {houses.map((l) => (
-                  <ListingCard key={l.id} listing={l} isAdmin={isAdmin} />
+                  <ListingCard
+                    key={l.id}
+                    listing={l}
+                    isAdmin={isAdmin}
+                    isDeleting={deleteBusyId === l.id}
+                    onDelete={
+                      isAdmin
+                        ? async (id) => {
+                            setDeleteError(null);
+                            setDeleteBusyId(id);
+                            try {
+                              await deleteListingRemote(id);
+                              refetch();
+                            } catch (err) {
+                              const message =
+                                err instanceof Error ? err.message : String(err);
+                              setDeleteError(message || "Eroare la ștergere.");
+                            } finally {
+                              setDeleteBusyId(null);
+                            }
+                          }
+                        : undefined
+                    }
+                  />
                 ))}
               </div>
             </section>
