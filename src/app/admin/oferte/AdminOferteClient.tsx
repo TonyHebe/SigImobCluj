@@ -125,7 +125,6 @@ export function AdminOferteClient() {
 
   useEffect(() => {
     if (isNew) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditingOriginalId(null);
       setDraft(emptyDraft());
       return;
