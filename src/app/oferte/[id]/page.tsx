@@ -212,7 +212,8 @@ export default function OfferDetailsPage() {
                   </div>
 
                   <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
-                    Notă: ofertele sunt încărcate din baza de date.
+                    Notă: ofertele sunt încărcate din baza de date (dacă este
+                    configurată) sau din lista implicită.
                   </div>
                 </div>
               </aside>
