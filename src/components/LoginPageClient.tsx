@@ -1,17 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { setAuthCookies } from "@/lib/authClient";
 import { logIn, signUp } from "@/lib/userStore";
 
 type Mode = "login" | "signup";
-
-function getAdminKeyExpected() {
-  // Note: NEXT_PUBLIC_* is exposed to the browser; this is only a simple gate for demo use.
-  return process.env.NEXT_PUBLIC_ADMIN_KEY || "123456";
-}
 
 export function LoginPageClient({ nextPath }: { nextPath: string }) {
   const router = useRouter();
@@ -26,8 +20,6 @@ export function LoginPageClient({ nextPath }: { nextPath: string }) {
   const [isBusy, setIsBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const adminKeyExpected = useMemo(() => getAdminKeyExpected(), []);
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
@@ -40,8 +32,6 @@ export function LoginPageClient({ nextPath }: { nextPath: string }) {
           setError(res.error);
           return;
         }
-        // After signup, log them in as a normal user.
-        setAuthCookies({ role: "user", email: email.trim().toLowerCase() });
         router.replace(nextPath || "/");
         router.refresh();
         return;
@@ -53,17 +43,11 @@ export function LoginPageClient({ nextPath }: { nextPath: string }) {
           setError("Please enter the admin key.");
           return;
         }
-        if (adminKey !== adminKeyExpected) {
-          setError("Invalid admin key.");
-          return;
-        }
-        // Optional: also require existing user credentials to be valid.
-        const res = await logIn({ email, password });
+        const res = await logIn({ email, password, asAdmin: true, adminKey });
         if (!res.ok) {
           setError(res.error);
           return;
         }
-        setAuthCookies({ role: "admin", email: email.trim().toLowerCase() });
         router.replace(nextPath || "/");
         router.refresh();
         return;
@@ -73,7 +57,6 @@ export function LoginPageClient({ nextPath }: { nextPath: string }) {
           setError(res.error);
           return;
         }
-        setAuthCookies({ role: "user", email: email.trim().toLowerCase() });
         router.replace(nextPath || "/");
         router.refresh();
         return;
@@ -251,8 +234,9 @@ export function LoginPageClient({ nextPath }: { nextPath: string }) {
           <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-600">
             <div className="font-semibold text-slate-900">Admin setup</div>
             <div className="mt-1">
-              Set <span className="font-semibold">NEXT_PUBLIC_ADMIN_KEY</span>{" "}
-              in your environment to change the admin key (default is{" "}
+              Set <span className="font-semibold">ADMIN_KEY</span> (recommended) or{" "}
+              <span className="font-semibold">NEXT_PUBLIC_ADMIN_KEY</span> in your
+              environment to change the admin key (default is{" "}
               <span className="font-semibold">123456</span>).
             </div>
           </div>
