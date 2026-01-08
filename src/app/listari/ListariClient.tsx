@@ -7,8 +7,9 @@ import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
 import { QuickRequestForm } from "@/components/QuickRequestForm";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { getAuthSnapshot } from "@/lib/authClient";
-import { featuredListings, type Listing } from "@/lib/listings";
-import { deleteListing, useListings } from "@/lib/listingsStore";
+import type { Listing } from "@/lib/listings";
+import { deleteListingRemote } from "@/lib/listingsRemote";
+import { useRemoteListings } from "@/lib/useListingsRemote";
 
 function normalizeText(value: string) {
   return value
@@ -60,9 +61,11 @@ function kindFromPropertyType(propertyType: string) {
 function ListingCard({
   listing,
   isAdmin,
+  onDeleted,
 }: {
   listing: Listing;
   isAdmin: boolean;
+  onDeleted: () => Promise<void>;
 }) {
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
@@ -93,12 +96,18 @@ function ListingCard({
             <button
               type="button"
               className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-rose-500"
-              onClick={() => {
+              onClick={async () => {
                 const ok = window.confirm(
                   `Ștergi oferta “${listing.title}” (ID: ${listing.id})?`,
                 );
                 if (!ok) return;
-                deleteListing(featuredListings, listing.id);
+                try {
+                  await deleteListingRemote(listing.id);
+                  await onDeleted();
+                } catch (err) {
+                  const message = err instanceof Error ? err.message : String(err);
+                  window.alert(message);
+                }
               }}
             >
               Șterge
@@ -194,7 +203,7 @@ export function ListariClientPage({
   })();
 
   const isAdmin = auth.isAuthed && auth.role === "admin";
-  const listings = useListings(featuredListings);
+  const { listings, isLoading, error, refresh } = useRemoteListings();
 
   const active = useMemo(() => hasActiveFilters(filters), [filters]);
 
@@ -308,6 +317,11 @@ export function ListariClientPage({
             Aici găsești toate apartamentele și casele. (Terenurile sunt pe alt
             flux.)
           </p>
+          {isLoading ? (
+            <p className="text-sm text-slate-600">Se încarcă ofertele…</p>
+          ) : error ? (
+            <p className="text-sm text-rose-700">Eroare: {error}</p>
+          ) : null}
           {active ? (
             <p className="text-sm text-slate-600">
               Rezultate:{" "}
@@ -326,7 +340,12 @@ export function ListariClientPage({
             {filtered.length ? (
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {filtered.map((l) => (
-                  <ListingCard key={l.id} listing={l} isAdmin={isAdmin} />
+                  <ListingCard
+                    key={l.id}
+                    listing={l}
+                    isAdmin={isAdmin}
+                    onDeleted={refresh}
+                  />
                 ))}
               </div>
             ) : (
@@ -353,7 +372,12 @@ export function ListariClientPage({
               </div>
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {apartments.map((l) => (
-                  <ListingCard key={l.id} listing={l} isAdmin={isAdmin} />
+                  <ListingCard
+                    key={l.id}
+                    listing={l}
+                    isAdmin={isAdmin}
+                    onDeleted={refresh}
+                  />
                 ))}
               </div>
             </section>
@@ -364,7 +388,12 @@ export function ListariClientPage({
               </h2>
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {houses.map((l) => (
-                  <ListingCard key={l.id} listing={l} isAdmin={isAdmin} />
+                  <ListingCard
+                    key={l.id}
+                    listing={l}
+                    isAdmin={isAdmin}
+                    onDeleted={refresh}
+                  />
                 ))}
               </div>
             </section>

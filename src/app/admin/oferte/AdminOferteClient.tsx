@@ -7,13 +7,12 @@ import { useEffect, useMemo, useState } from "react";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { getAuthSnapshot } from "@/lib/authClient";
 import type { Listing } from "@/lib/listings";
-import { featuredListings } from "@/lib/listings";
 import {
-  deleteListing,
-  resetListings,
-  upsertListing,
-  useListings,
-} from "@/lib/listingsStore";
+  deleteListingRemote,
+  resetListingsRemote,
+  saveListing,
+} from "@/lib/listingsRemote";
+import { useRemoteListings } from "@/lib/useListingsRemote";
 
 type DraftImage = {
   src: string;
@@ -105,7 +104,12 @@ export function AdminOferteClient() {
   })();
 
   const isAdmin = auth.isAuthed && auth.role === "admin";
-  const listings = useListings(featuredListings);
+  const {
+    listings,
+    isLoading: isListingsLoading,
+    error: listingsError,
+    refresh: refreshListings,
+  } = useRemoteListings();
 
   const [editingOriginalId, setEditingOriginalId] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftListing>(() => emptyDraft());
@@ -166,7 +170,7 @@ export function AdminOferteClient() {
 
   const total = listings.length;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setError(null);
     setNotice(null);
 
@@ -206,15 +210,22 @@ export function AdminOferteClient() {
       })),
     };
 
-    // Handle rename (ID changed)
-    if (editingOriginalId && editingOriginalId !== id) {
-      deleteListing(featuredListings, editingOriginalId);
-    }
+    try {
+      await saveListing(listing);
 
-    upsertListing(featuredListings, listing);
-    setEditingOriginalId(id);
-    setNotice("Salvat.");
-    router.replace(`/admin/oferte?edit=${encodeURIComponent(id)}`);
+      // Handle rename (ID changed)
+      if (editingOriginalId && editingOriginalId !== id) {
+        await deleteListingRemote(editingOriginalId);
+      }
+
+      await refreshListings();
+      setEditingOriginalId(id);
+      setNotice("Salvat.");
+      router.replace(`/admin/oferte?edit=${encodeURIComponent(id)}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message);
+    }
   };
 
   return (
@@ -225,7 +236,10 @@ export function AdminOferteClient() {
             <div className="text-sm font-semibold text-slate-900">
               Admin • Oferte
             </div>
-            <div className="text-xs text-slate-500">Total: {total}</div>
+            <div className="text-xs text-slate-500">
+              Total: {total}
+              {isListingsLoading ? " (se încarcă…)" : ""}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-end gap-2">
@@ -248,14 +262,20 @@ export function AdminOferteClient() {
             <button
               type="button"
               className="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-800 shadow-sm hover:bg-rose-100"
-              onClick={() => {
+              onClick={async () => {
                 const ok = window.confirm(
                   "Resetezi toate ofertele la valorile inițiale (din cod)?",
                 );
                 if (!ok) return;
-                resetListings();
-                setNotice("Reset făcut.");
-                router.replace("/admin/oferte");
+                try {
+                  await resetListingsRemote();
+                  await refreshListings();
+                  setNotice("Reset făcut.");
+                  router.replace("/admin/oferte");
+                } catch (err) {
+                  const message = err instanceof Error ? err.message : String(err);
+                  setError(message);
+                }
               }}
             >
               Reset la default
@@ -267,14 +287,19 @@ export function AdminOferteClient() {
       <main className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-5">
         <section className="lg:col-span-3">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            {listingsError ? (
+              <div className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                Eroare la încărcarea ofertelor: {listingsError}
+              </div>
+            ) : null}
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <div className="text-sm font-semibold text-slate-900">
                   {editingOriginalId ? "Editează ofertă" : "Creează ofertă"}
                 </div>
                 <div className="mt-1 text-xs text-slate-500">
-                  Modificările se salvează local (în browser) și se văd imediat
-                  pe listări.
+                  Modificările se salvează în baza de date (MongoDB) și se văd pe
+                  listări.
                 </div>
               </div>
 
@@ -282,16 +307,23 @@ export function AdminOferteClient() {
                 <button
                   type="button"
                   className="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-500"
-                  onClick={() => {
+                  onClick={async () => {
                     const ok = window.confirm(
                       `Ștergi oferta (ID: ${editingOriginalId})?`,
                     );
                     if (!ok) return;
-                    deleteListing(featuredListings, editingOriginalId);
-                    setEditingOriginalId(null);
-                    setDraft(emptyDraft());
-                    setNotice("Șters.");
-                    router.replace("/admin/oferte");
+                    try {
+                      await deleteListingRemote(editingOriginalId);
+                      await refreshListings();
+                      setEditingOriginalId(null);
+                      setDraft(emptyDraft());
+                      setNotice("Șters.");
+                      router.replace("/admin/oferte");
+                    } catch (err) {
+                      const message =
+                        err instanceof Error ? err.message : String(err);
+                      setError(message);
+                    }
                   }}
                 >
                   Șterge
@@ -623,16 +655,23 @@ export function AdminOferteClient() {
                     <button
                       type="button"
                       className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-rose-500"
-                      onClick={() => {
+                      onClick={async () => {
                         const ok = window.confirm(
                           `Ștergi oferta “${l.title}” (ID: ${l.id})?`,
                         );
                         if (!ok) return;
-                        deleteListing(featuredListings, l.id);
-                        if (editingOriginalId === l.id) {
-                          setEditingOriginalId(null);
-                          setDraft(emptyDraft());
-                          router.replace("/admin/oferte");
+                        try {
+                          await deleteListingRemote(l.id);
+                          await refreshListings();
+                          if (editingOriginalId === l.id) {
+                            setEditingOriginalId(null);
+                            setDraft(emptyDraft());
+                            router.replace("/admin/oferte");
+                          }
+                        } catch (err) {
+                          const message =
+                            err instanceof Error ? err.message : String(err);
+                          setError(message);
                         }
                       }}
                     >
