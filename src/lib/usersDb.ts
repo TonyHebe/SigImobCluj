@@ -26,9 +26,8 @@ async function getUsersCollection(): Promise<Collection<UserDoc>> {
   const db = dbName ? client.db(dbName) : client.db();
   const col = db.collection<UserDoc>("users");
 
-  // Ensure unique email (best-effort).
-  // If multiple requests race to create the index, Mongo will handle it.
-  await col.createIndex({ _id: 1 }, { unique: true });
+  // Note: MongoDB automatically creates a unique index on `_id`.
+  // Since we store the normalized email in `_id`, uniqueness is enforced by default.
 
   return col;
 }
