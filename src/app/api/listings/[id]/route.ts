@@ -6,9 +6,11 @@ import { deleteListingDb, getListing, parseListing, upsertListingDb } from "@/li
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function isAdminRequest(): boolean {
-  const c = cookies();
-  return c.get("sig_auth")?.value === "1" && c.get("sig_role")?.value === "admin";
+async function isAdminRequest(): Promise<boolean> {
+  const c = await cookies();
+  return (
+    c.get("sig_auth")?.value === "1" && c.get("sig_role")?.value === "admin"
+  );
 }
 
 export async function GET(
@@ -32,7 +34,7 @@ export async function PUT(
   req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  if (!isAdminRequest()) {
+  if (!(await isAdminRequest())) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
 
@@ -52,7 +54,7 @@ export async function DELETE(
   _req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
-  if (!isAdminRequest()) {
+  if (!(await isAdminRequest())) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
 

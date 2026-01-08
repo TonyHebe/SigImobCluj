@@ -6,13 +6,15 @@ import { resetListingsDb } from "@/lib/listingsDb";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-function isAdminRequest(): boolean {
-  const c = cookies();
-  return c.get("sig_auth")?.value === "1" && c.get("sig_role")?.value === "admin";
+async function isAdminRequest(): Promise<boolean> {
+  const c = await cookies();
+  return (
+    c.get("sig_auth")?.value === "1" && c.get("sig_role")?.value === "admin"
+  );
 }
 
 export async function POST() {
-  if (!isAdminRequest()) {
+  if (!(await isAdminRequest())) {
     return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
   }
 
