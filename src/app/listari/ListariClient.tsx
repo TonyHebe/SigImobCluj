@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
 import { QuickRequestForm } from "@/components/QuickRequestForm";
@@ -187,8 +188,30 @@ function hasActiveFilters(filters: {
   return propertyTypeActive || neighborhoodActive || budgetActive || idActive;
 }
 
+const PAGE_SIZE = 25;
+
+function getPageNumbers(current: number, total: number) {
+  if (total <= 1) return [1];
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const out: Array<number | "…"> = [];
+  const push = (v: number | "…") => {
+    if (out[out.length - 1] === v) return;
+    out.push(v);
+  };
+
+  push(1);
+  const left = Math.max(2, current - 1);
+  const right = Math.min(total - 1, current + 1);
+  if (left > 2) push("…");
+  for (let p = left; p <= right; p++) push(p);
+  if (right < total - 1) push("…");
+  push(total);
+  return out;
+}
+
 export function ListariClientPage({
   filters,
+  page,
 }: {
   filters: {
     propertyType: string;
@@ -196,7 +219,9 @@ export function ListariClientPage({
     budget: string;
     id: string;
   };
+  page: number;
 }) {
+  const router = useRouter();
   const auth = (() => {
     try {
       return getAuthSnapshot();
@@ -239,13 +264,68 @@ export function ListariClientPage({
     });
   }, [active, filters.budget, filters.id, filters.neighborhood, filters.propertyType, listings]);
 
+  const base = useMemo(() => {
+    if (active) return filtered;
+    // `/listari` shows apartments + houses (land is a different flow).
+    return listings.filter((l) => l.kind !== "land");
+  }, [active, filtered, listings]);
+
+  const totalPages = useMemo(() => {
+    if (!base.length) return 1;
+    return Math.max(1, Math.ceil(base.length / PAGE_SIZE));
+  }, [base.length]);
+
+  const currentPage = useMemo(() => {
+    const p = Number.isFinite(page) ? Math.floor(page) : 1;
+    const clamped = Math.min(Math.max(1, p), totalPages);
+    return clamped;
+  }, [page, totalPages]);
+
+  useEffect(() => {
+    if (page === currentPage) return;
+    const sp =
+      typeof window === "undefined"
+        ? new URLSearchParams()
+        : new URLSearchParams(window.location.search);
+    if (currentPage <= 1) sp.delete("page");
+    else sp.set("page", String(currentPage));
+    const qs = sp.toString();
+    router.replace(qs ? `/listari?${qs}` : "/listari");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, page]);
+
+  const pageSlice = useMemo(() => {
+    const start = (currentPage - 1) * PAGE_SIZE;
+    return base.slice(start, start + PAGE_SIZE);
+  }, [base, currentPage]);
+
   const apartments = useMemo(
-    () => listings.filter((l) => l.kind === "apartment"),
-    [listings],
+    () => pageSlice.filter((l) => l.kind === "apartment"),
+    [pageSlice],
   );
   const houses = useMemo(
-    () => listings.filter((l) => l.kind === "house"),
-    [listings],
+    () => pageSlice.filter((l) => l.kind === "house"),
+    [pageSlice],
+  );
+
+  const goToPage = (nextPage: number) => {
+    const target = Math.min(Math.max(1, Math.floor(nextPage)), totalPages);
+    const sp =
+      typeof window === "undefined"
+        ? new URLSearchParams()
+        : new URLSearchParams(window.location.search);
+    if (target <= 1) sp.delete("page");
+    else sp.set("page", String(target));
+    const qs = sp.toString();
+    router.push(qs ? `/listari?${qs}` : "/listari");
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, left: 0, behavior: "smooth" });
+    }
+  };
+
+  const pageNumbers = useMemo(
+    () => getPageNumbers(currentPage, totalPages),
+    [currentPage, totalPages],
   );
 
   return (
@@ -348,9 +428,9 @@ export function ListariClientPage({
             <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
               Rezultate
             </h2>
-            {filtered.length ? (
+            {base.length ? (
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {filtered.map((l) => (
+                {pageSlice.map((l) => (
                   <ListingCard
                     key={l.id}
                     listing={l}
@@ -382,6 +462,64 @@ export function ListariClientPage({
                 Nu există oferte care să se potrivească acestor criterii.
               </div>
             )}
+
+            {base.length > PAGE_SIZE ? (
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="text-sm text-slate-600">
+                  Pagina{" "}
+                  <span className="font-semibold text-slate-900">
+                    {currentPage}
+                  </span>{" "}
+                  din{" "}
+                  <span className="font-semibold text-slate-900">
+                    {totalPages}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={currentPage <= 1}
+                    onClick={() => goToPage(currentPage - 1)}
+                  >
+                    Înapoi
+                  </button>
+                  <div className="flex flex-wrap items-center gap-1">
+                    {pageNumbers.map((p, idx) =>
+                      p === "…" ? (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="px-2 text-sm text-slate-500"
+                        >
+                          …
+                        </span>
+                      ) : (
+                        <button
+                          key={p}
+                          type="button"
+                          className={
+                            p === currentPage
+                              ? "inline-flex h-10 min-w-10 items-center justify-center rounded-xl bg-slate-900 px-3 text-sm font-semibold text-white shadow-sm"
+                              : "inline-flex h-10 min-w-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                          }
+                          onClick={() => goToPage(p)}
+                        >
+                          {p}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => goToPage(currentPage + 1)}
+                  >
+                    Înainte
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </section>
         ) : (
           <>
@@ -399,69 +537,139 @@ export function ListariClientPage({
                   </Link>
                 ) : null}
               </div>
-              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {apartments.map((l) => (
-                  <ListingCard
-                    key={l.id}
-                    listing={l}
-                    isAdmin={isAdmin}
-                    isDeleting={deleteBusyId === l.id}
-                    onDelete={
-                      isAdmin
-                        ? async (id) => {
-                            setDeleteError(null);
-                            setDeleteBusyId(id);
-                            try {
-                              await deleteListingRemote(id);
-                              refetch();
-                            } catch (err) {
-                              const message =
-                                err instanceof Error ? err.message : String(err);
-                              setDeleteError(message || "Eroare la ștergere.");
-                            } finally {
-                              setDeleteBusyId(null);
+              {apartments.length ? (
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {apartments.map((l) => (
+                    <ListingCard
+                      key={l.id}
+                      listing={l}
+                      isAdmin={isAdmin}
+                      isDeleting={deleteBusyId === l.id}
+                      onDelete={
+                        isAdmin
+                          ? async (id) => {
+                              setDeleteError(null);
+                              setDeleteBusyId(id);
+                              try {
+                                await deleteListingRemote(id);
+                                refetch();
+                              } catch (err) {
+                                const message =
+                                  err instanceof Error ? err.message : String(err);
+                                setDeleteError(message || "Eroare la ștergere.");
+                              } finally {
+                                setDeleteBusyId(null);
+                              }
                             }
-                          }
-                        : undefined
-                    }
-                  />
-                ))}
-              </div>
+                          : undefined
+                      }
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-sm">
+                  Nu sunt apartamente pe această pagină.
+                </div>
+              )}
             </section>
 
             <section className="mt-12">
               <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
                 Case
               </h2>
-              <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {houses.map((l) => (
-                  <ListingCard
-                    key={l.id}
-                    listing={l}
-                    isAdmin={isAdmin}
-                    isDeleting={deleteBusyId === l.id}
-                    onDelete={
-                      isAdmin
-                        ? async (id) => {
-                            setDeleteError(null);
-                            setDeleteBusyId(id);
-                            try {
-                              await deleteListingRemote(id);
-                              refetch();
-                            } catch (err) {
-                              const message =
-                                err instanceof Error ? err.message : String(err);
-                              setDeleteError(message || "Eroare la ștergere.");
-                            } finally {
-                              setDeleteBusyId(null);
+              {houses.length ? (
+                <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {houses.map((l) => (
+                    <ListingCard
+                      key={l.id}
+                      listing={l}
+                      isAdmin={isAdmin}
+                      isDeleting={deleteBusyId === l.id}
+                      onDelete={
+                        isAdmin
+                          ? async (id) => {
+                              setDeleteError(null);
+                              setDeleteBusyId(id);
+                              try {
+                                await deleteListingRemote(id);
+                                refetch();
+                              } catch (err) {
+                                const message =
+                                  err instanceof Error ? err.message : String(err);
+                                setDeleteError(message || "Eroare la ștergere.");
+                              } finally {
+                                setDeleteBusyId(null);
+                              }
                             }
-                          }
-                        : undefined
-                    }
-                  />
-                ))}
-              </div>
+                          : undefined
+                      }
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-sm">
+                  Nu sunt case pe această pagină.
+                </div>
+              )}
             </section>
+
+            {base.length > PAGE_SIZE ? (
+              <div className="mt-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                <div className="text-sm text-slate-600">
+                  Pagina{" "}
+                  <span className="font-semibold text-slate-900">
+                    {currentPage}
+                  </span>{" "}
+                  din{" "}
+                  <span className="font-semibold text-slate-900">
+                    {totalPages}
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={currentPage <= 1}
+                    onClick={() => goToPage(currentPage - 1)}
+                  >
+                    Înapoi
+                  </button>
+                  <div className="flex flex-wrap items-center gap-1">
+                    {pageNumbers.map((p, idx) =>
+                      p === "…" ? (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="px-2 text-sm text-slate-500"
+                        >
+                          …
+                        </span>
+                      ) : (
+                        <button
+                          key={p}
+                          type="button"
+                          className={
+                            p === currentPage
+                              ? "inline-flex h-10 min-w-10 items-center justify-center rounded-xl bg-slate-900 px-3 text-sm font-semibold text-white shadow-sm"
+                              : "inline-flex h-10 min-w-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                          }
+                          onClick={() => goToPage(p)}
+                        >
+                          {p}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    disabled={currentPage >= totalPages}
+                    onClick={() => goToPage(currentPage + 1)}
+                  >
+                    Înainte
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </>
         )}
       </main>
