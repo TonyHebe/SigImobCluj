@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
@@ -520,12 +521,15 @@ export function AdminOferteClient() {
                     </div>
 
                     {img.src ? (
-                      <div className="mt-3 overflow-hidden rounded-xl border border-slate-200 bg-white">
-                        <img
+                      <div className="relative mt-3 h-44 overflow-hidden rounded-xl border border-slate-200 bg-white">
+                        <Image
                           src={img.src}
                           alt={img.alt || draft.title || "Preview"}
-                          className="h-44 w-full object-cover"
+                          fill
+                          sizes="(max-width: 640px) 100vw, 400px"
+                          className="object-cover"
                           loading="lazy"
+                          unoptimized
                         />
                       </div>
                     ) : null}

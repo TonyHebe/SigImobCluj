@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo } from "react";
 
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
@@ -64,16 +65,21 @@ function ListingCard({
   listing: Listing;
   isAdmin: boolean;
 }) {
+  const cover = listing.images[0];
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="relative">
         <div className="relative h-44 overflow-hidden bg-[linear-gradient(135deg,rgba(14,165,233,0.22),rgba(99,102,241,0.18))]">
-          <img
-            src={listing.images[0]?.src}
-            alt={listing.images[0]?.alt ?? listing.title}
-            className="h-full w-full object-cover transition duration-300 ease-out group-hover:scale-105"
-            loading="lazy"
-          />
+          {cover?.src ? (
+            <Image
+              src={cover.src}
+              alt={cover.alt ?? listing.title}
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover transition duration-300 ease-out group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : null}
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-0 bg-gradient-to-t from-slate-950/30 via-slate-950/10 to-transparent"
