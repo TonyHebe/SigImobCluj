@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
 
@@ -28,6 +29,8 @@ export default function OfferDetailsPage() {
     () => listings.find((l) => l.id === id) ?? null,
     [id, listings],
   );
+
+  const cover = listing?.images?.[0] ?? null;
 
   return (
     <div className="min-h-dvh">
@@ -136,12 +139,16 @@ export default function OfferDetailsPage() {
               <section className="lg:col-span-3">
                 <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                   <div className="relative h-[320px] sm:h-[420px]">
-                    <img
-                      src={listing.images[0]?.src}
-                      alt={listing.images[0]?.alt ?? listing.title}
-                      className="h-full w-full object-cover"
-                      loading="eager"
-                    />
+                    {cover?.src ? (
+                      <Image
+                        src={cover.src}
+                        alt={cover.alt ?? listing.title}
+                        fill
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 66vw, 60vw"
+                        className="object-cover"
+                        priority
+                      />
+                    ) : null}
                   </div>
                   <div className="grid gap-3 p-4 sm:grid-cols-3">
                     {listing.images.slice(1).map((img) => (
@@ -149,10 +156,12 @@ export default function OfferDetailsPage() {
                         key={img.src}
                         className="relative h-28 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50"
                       >
-                        <img
+                        <Image
                           src={img.src}
                           alt={img.alt}
-                          className="h-full w-full object-cover"
+                          fill
+                          sizes="(max-width: 640px) 33vw, 200px"
+                          className="object-cover"
                           loading="lazy"
                         />
                       </div>
