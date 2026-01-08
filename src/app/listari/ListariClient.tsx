@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
 import { QuickRequestForm } from "@/components/QuickRequestForm";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { getAuthSnapshot } from "@/lib/authClient";
-import { featuredListings, type Listing } from "@/lib/listings";
-import { deleteListing, useListings } from "@/lib/listingsStore";
+import type { Listing } from "@/lib/listings";
+import { deleteListingRemote } from "@/lib/listingsRemote";
+import { useListingsRemote } from "@/lib/useListingsRemote";
 
 function normalizeText(value: string) {
   return value
@@ -61,9 +62,13 @@ function kindFromPropertyType(propertyType: string) {
 function ListingCard({
   listing,
   isAdmin,
+  onDelete,
+  isBusy,
 }: {
   listing: Listing;
   isAdmin: boolean;
+  onDelete: (id: string, title: string) => void;
+  isBusy: boolean;
 }) {
   const cover = listing.images[0];
   return (
@@ -98,13 +103,14 @@ function ListingCard({
             </Link>
             <button
               type="button"
+              disabled={isBusy}
               className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-rose-500"
               onClick={() => {
                 const ok = window.confirm(
                   `Ștergi oferta “${listing.title}” (ID: ${listing.id})?`,
                 );
                 if (!ok) return;
-                deleteListing(featuredListings, listing.id);
+                onDelete(listing.id, listing.title);
               }}
             >
               Șterge
@@ -200,7 +206,29 @@ export function ListariClientPage({
   })();
 
   const isAdmin = auth.isAuthed && auth.role === "admin";
-  const listings = useListings(featuredListings);
+  const {
+    listings,
+    isLoading: isLoadingListings,
+    error: listingsError,
+    refetch,
+  } = useListingsRemote();
+  const [notice, setNotice] = useState<string | null>(null);
+  const [isBusy, setIsBusy] = useState(false);
+
+  const handleDelete = async (id: string) => {
+    setNotice(null);
+    setIsBusy(true);
+    try {
+      await deleteListingRemote(id);
+      refetch();
+      setNotice("Oferta a fost ștearsă.");
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setNotice(message || "Eroare la ștergere.");
+    } finally {
+      setIsBusy(false);
+    }
+  };
 
   const active = useMemo(() => hasActiveFilters(filters), [filters]);
 
@@ -324,6 +352,22 @@ export function ListariClientPage({
           ) : null}
         </div>
 
+        {isLoadingListings ? (
+          <div className="mt-10 rounded-2xl border border-slate-200 bg-white p-5 text-sm text-slate-700 shadow-sm">
+            Se încarcă listările…
+          </div>
+        ) : null}
+        {listingsError ? (
+          <div className="mt-6 rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm text-rose-800 shadow-sm">
+            {listingsError}
+          </div>
+        ) : null}
+        {notice ? (
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-700 shadow-sm">
+            {notice}
+          </div>
+        ) : null}
+
         {active ? (
           <section className="mt-10">
             <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
@@ -332,7 +376,13 @@ export function ListariClientPage({
             {filtered.length ? (
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {filtered.map((l) => (
-                  <ListingCard key={l.id} listing={l} isAdmin={isAdmin} />
+                  <ListingCard
+                    key={l.id}
+                    listing={l}
+                    isAdmin={isAdmin}
+                    isBusy={isBusy}
+                    onDelete={(id) => void handleDelete(id)}
+                  />
                 ))}
               </div>
             ) : (
@@ -359,7 +409,13 @@ export function ListariClientPage({
               </div>
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {apartments.map((l) => (
-                  <ListingCard key={l.id} listing={l} isAdmin={isAdmin} />
+                  <ListingCard
+                    key={l.id}
+                    listing={l}
+                    isAdmin={isAdmin}
+                    isBusy={isBusy}
+                    onDelete={(id) => void handleDelete(id)}
+                  />
                 ))}
               </div>
             </section>
@@ -370,7 +426,13 @@ export function ListariClientPage({
               </h2>
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {houses.map((l) => (
-                  <ListingCard key={l.id} listing={l} isAdmin={isAdmin} />
+                  <ListingCard
+                    key={l.id}
+                    listing={l}
+                    isAdmin={isAdmin}
+                    isBusy={isBusy}
+                    onDelete={(id) => void handleDelete(id)}
+                  />
                 ))}
               </div>
             </section>

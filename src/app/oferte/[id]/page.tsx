@@ -3,13 +3,11 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
 
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { getAuthSnapshot } from "@/lib/authClient";
-import { featuredListings } from "@/lib/listings";
-import { useListings } from "@/lib/listingsStore";
+import { useListingRemote } from "@/lib/useListingsRemote";
 
 export default function OfferDetailsPage() {
   const params = useParams<{ id: string }>();
@@ -24,11 +22,7 @@ export default function OfferDetailsPage() {
   })();
 
   const isAdmin = auth.isAuthed && auth.role === "admin";
-  const listings = useListings(featuredListings);
-  const listing = useMemo(
-    () => listings.find((l) => l.id === id) ?? null,
-    [id, listings],
-  );
+  const { listing, isLoading, error } = useListingRemote(id);
 
   const cover = listing?.images?.[0] ?? null;
 
@@ -83,14 +77,24 @@ export default function OfferDetailsPage() {
       </header>
 
       <main className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-        {!listing ? (
+        {isLoading ? (
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="text-sm font-semibold text-slate-900">
+              Se încarcă oferta…
+            </div>
+          </div>
+        ) : error ? (
+          <div className="rounded-3xl border border-rose-200 bg-rose-50 p-6 text-sm text-rose-800 shadow-sm">
+            {error}
+          </div>
+        ) : !listing ? (
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="text-sm font-semibold text-slate-900">
               Oferta nu există (ID: {id})
             </div>
             <p className="mt-2 text-sm text-slate-600">
-              Dacă tocmai ai creat oferta, verifică să fii pe același browser /
-              dispozitiv (ofertele editate sunt salvate local).
+              Dacă tocmai ai creat oferta, verifică în <code>/api/listings</code>{" "}
+              că apare acolo și că salvarea a fost făcută fără erori.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <ScrollTopLink
