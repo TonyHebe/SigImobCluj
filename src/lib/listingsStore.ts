@@ -132,7 +132,6 @@ export function useListings(defaults: readonly Listing[]) {
   );
 
   useEffect(() => {
-    setState(getEffectiveListings(stableDefaults));
     return subscribeToListingsChanges(() => {
       setState(getEffectiveListings(stableDefaults));
     });
