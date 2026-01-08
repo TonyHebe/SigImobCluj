@@ -118,10 +118,8 @@ export function AdminOferteClient() {
   }, [editId, listings]);
 
   useEffect(() => {
-    setError(null);
-    setNotice(null);
-
     if (isNew) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditingOriginalId(null);
       setDraft(emptyDraft());
       return;
@@ -240,6 +238,10 @@ export function AdminOferteClient() {
             <Link
               href="/admin/oferte?new=1"
               className="inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+              onClick={() => {
+                setError(null);
+                setNotice(null);
+              }}
             >
               + Ofertă nouă
             </Link>
@@ -584,6 +586,10 @@ export function AdminOferteClient() {
               <Link
                 href="/admin/oferte"
                 className="text-sm font-semibold text-sky-700 hover:text-sky-800"
+                onClick={() => {
+                  setError(null);
+                  setNotice(null);
+                }}
               >
                 Clear
               </Link>
@@ -607,6 +613,10 @@ export function AdminOferteClient() {
                     <Link
                       href={`/admin/oferte?edit=${encodeURIComponent(l.id)}`}
                       className="inline-flex items-center justify-center rounded-lg bg-white px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                      onClick={() => {
+                        setError(null);
+                        setNotice(null);
+                      }}
                     >
                       Edit
                     </Link>
