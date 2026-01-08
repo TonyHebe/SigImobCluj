@@ -8,13 +8,12 @@ import { useEffect, useMemo, useState } from "react";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { getAuthSnapshot } from "@/lib/authClient";
 import type { Listing } from "@/lib/listings";
-import { featuredListings } from "@/lib/listings";
 import {
-  deleteListing,
-  resetListings,
-  upsertListing,
-  useListings,
-} from "@/lib/listingsStore";
+  deleteListingRemote,
+  resetListingsRemote,
+  saveListing,
+} from "@/lib/listingsRemote";
+import { useListingsRemote } from "@/lib/useListingsRemote";
 
 type DraftImage = {
   src: string;
@@ -106,12 +105,18 @@ export function AdminOferteClient() {
   })();
 
   const isAdmin = auth.isAuthed && auth.role === "admin";
-  const listings = useListings(featuredListings);
+  const {
+    listings,
+    isLoading: isLoadingListings,
+    error: listingsError,
+    refetch,
+  } = useListingsRemote();
 
   const [editingOriginalId, setEditingOriginalId] = useState<string | null>(null);
   const [draft, setDraft] = useState<DraftListing>(() => emptyDraft());
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [isBusy, setIsBusy] = useState(false);
 
   const selectedListing = useMemo(() => {
     if (!editId) return null;
@@ -167,7 +172,7 @@ export function AdminOferteClient() {
 
   const total = listings.length;
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setError(null);
     setNotice(null);
 
@@ -207,15 +212,25 @@ export function AdminOferteClient() {
       })),
     };
 
-    // Handle rename (ID changed)
-    if (editingOriginalId && editingOriginalId !== id) {
-      deleteListing(featuredListings, editingOriginalId);
-    }
+    setIsBusy(true);
+    try {
+      await saveListing(listing);
 
-    upsertListing(featuredListings, listing);
-    setEditingOriginalId(id);
-    setNotice("Salvat.");
-    router.replace(`/admin/oferte?edit=${encodeURIComponent(id)}`);
+      // If ID changed, treat it as a "rename": save new, then delete old.
+      if (editingOriginalId && editingOriginalId !== id) {
+        await deleteListingRemote(editingOriginalId);
+      }
+
+      setEditingOriginalId(id);
+      setNotice("Salvat în baza de date.");
+      refetch();
+      router.replace(`/admin/oferte?edit=${encodeURIComponent(id)}`);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setError(message || "Eroare la salvare.");
+    } finally {
+      setIsBusy(false);
+    }
   };
 
   return (
@@ -249,14 +264,26 @@ export function AdminOferteClient() {
             <button
               type="button"
               className="inline-flex items-center justify-center rounded-xl border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-800 shadow-sm hover:bg-rose-100"
-              onClick={() => {
+              disabled={isBusy}
+              onClick={async () => {
                 const ok = window.confirm(
                   "Resetezi toate ofertele la valorile inițiale (din cod)?",
                 );
                 if (!ok) return;
-                resetListings();
-                setNotice("Reset făcut.");
-                router.replace("/admin/oferte");
+                setIsBusy(true);
+                setError(null);
+                setNotice(null);
+                try {
+                  await resetListingsRemote();
+                  setNotice("Reset făcut (bază de date).");
+                  refetch();
+                  router.replace("/admin/oferte");
+                } catch (err) {
+                  const message = err instanceof Error ? err.message : String(err);
+                  setError(message || "Eroare la reset.");
+                } finally {
+                  setIsBusy(false);
+                }
               }}
             >
               Reset la default
@@ -274,25 +301,37 @@ export function AdminOferteClient() {
                   {editingOriginalId ? "Editează ofertă" : "Creează ofertă"}
                 </div>
                 <div className="mt-1 text-xs text-slate-500">
-                  Modificările se salvează local (în browser) și se văd imediat
-                  pe listări.
+                  Modificările se salvează în baza de date și se văd pe listări
+                  după refresh.
                 </div>
               </div>
 
               {editingOriginalId ? (
                 <button
                   type="button"
+                  disabled={isBusy}
                   className="inline-flex items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-rose-500"
-                  onClick={() => {
+                  onClick={async () => {
                     const ok = window.confirm(
                       `Ștergi oferta (ID: ${editingOriginalId})?`,
                     );
                     if (!ok) return;
-                    deleteListing(featuredListings, editingOriginalId);
-                    setEditingOriginalId(null);
-                    setDraft(emptyDraft());
-                    setNotice("Șters.");
-                    router.replace("/admin/oferte");
+                    setIsBusy(true);
+                    setError(null);
+                    setNotice(null);
+                    try {
+                      await deleteListingRemote(editingOriginalId);
+                      setEditingOriginalId(null);
+                      setDraft(emptyDraft());
+                      setNotice("Șters din baza de date.");
+                      refetch();
+                      router.replace("/admin/oferte");
+                    } catch (err) {
+                      const message = err instanceof Error ? err.message : String(err);
+                      setError(message || "Eroare la ștergere.");
+                    } finally {
+                      setIsBusy(false);
+                    }
                   }}
                 >
                   Șterge
@@ -552,6 +591,7 @@ export function AdminOferteClient() {
             <div className="mt-6 flex flex-wrap gap-3">
               <button
                 type="button"
+                disabled={isBusy}
                 className="inline-flex h-11 items-center justify-center rounded-xl bg-sky-600 px-6 text-sm font-semibold text-white shadow-sm hover:bg-sky-500"
                 onClick={handleSave}
               >
@@ -559,6 +599,7 @@ export function AdminOferteClient() {
               </button>
               <button
                 type="button"
+                disabled={isBusy}
                 className="inline-flex h-11 items-center justify-center rounded-xl border border-slate-200 bg-white px-6 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
                 onClick={() => {
                   setError(null);
@@ -599,6 +640,17 @@ export function AdminOferteClient() {
               </Link>
             </div>
 
+            {isLoadingListings ? (
+              <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-700">
+                Se încarcă ofertele…
+              </div>
+            ) : null}
+            {listingsError ? (
+              <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+                {listingsError}
+              </div>
+            ) : null}
+
             <div className="mt-4 grid gap-3">
               {listings.map((l) => (
                 <div
@@ -626,17 +678,30 @@ export function AdminOferteClient() {
                     </Link>
                     <button
                       type="button"
+                      disabled={isBusy}
                       className="inline-flex items-center justify-center rounded-lg bg-rose-600 px-3 py-1 text-xs font-semibold text-white shadow-sm hover:bg-rose-500"
-                      onClick={() => {
+                      onClick={async () => {
                         const ok = window.confirm(
                           `Ștergi oferta “${l.title}” (ID: ${l.id})?`,
                         );
                         if (!ok) return;
-                        deleteListing(featuredListings, l.id);
-                        if (editingOriginalId === l.id) {
-                          setEditingOriginalId(null);
-                          setDraft(emptyDraft());
-                          router.replace("/admin/oferte");
+                        setIsBusy(true);
+                        setError(null);
+                        setNotice(null);
+                        try {
+                          await deleteListingRemote(l.id);
+                          refetch();
+                          if (editingOriginalId === l.id) {
+                            setEditingOriginalId(null);
+                            setDraft(emptyDraft());
+                            router.replace("/admin/oferte");
+                          }
+                          setNotice("Șters din baza de date.");
+                        } catch (err) {
+                          const message = err instanceof Error ? err.message : String(err);
+                          setError(message || "Eroare la ștergere.");
+                        } finally {
+                          setIsBusy(false);
                         }
                       }}
                     >

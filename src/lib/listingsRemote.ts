@@ -3,6 +3,10 @@ import type { Listing } from "@/lib/listings";
 type ApiOk<T> = { ok: true } & T;
 type ApiErr = { ok: false; error: string };
 
+type FetchOptions = {
+  signal?: AbortSignal;
+};
+
 async function readJson<T>(res: Response): Promise<T> {
   const text = await res.text();
   if (!text) return {} as T;
@@ -17,8 +21,13 @@ function errorFromResponse(payload: unknown, fallback: string) {
   return fallback;
 }
 
-export async function fetchListings(): Promise<Listing[]> {
-  const res = await fetch("/api/listings", { method: "GET" });
+export async function fetchListings(options?: FetchOptions): Promise<Listing[]> {
+  const res = await fetch("/api/listings", {
+    method: "GET",
+    cache: "no-store",
+    credentials: "same-origin",
+    signal: options?.signal,
+  });
   const payload = await readJson<ApiOk<{ listings: Listing[] }> | ApiErr>(res);
   if (!res.ok || !payload.ok) {
     throw new Error(errorFromResponse(payload, "Failed to load listings."));
@@ -26,9 +35,15 @@ export async function fetchListings(): Promise<Listing[]> {
   return payload.listings;
 }
 
-export async function fetchListing(id: string): Promise<Listing | null> {
+export async function fetchListing(
+  id: string,
+  options?: FetchOptions,
+): Promise<Listing | null> {
   const res = await fetch(`/api/listings/${encodeURIComponent(id)}`, {
     method: "GET",
+    cache: "no-store",
+    credentials: "same-origin",
+    signal: options?.signal,
   });
   if (res.status === 404) return null;
   const payload = await readJson<ApiOk<{ listing: Listing }> | ApiErr>(res);
@@ -42,6 +57,7 @@ export async function saveListing(listing: Listing): Promise<Listing> {
   const res = await fetch("/api/listings", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    credentials: "same-origin",
     body: JSON.stringify(listing),
   });
   const payload = await readJson<ApiOk<{ listing: Listing }> | ApiErr>(res);
@@ -54,6 +70,7 @@ export async function saveListing(listing: Listing): Promise<Listing> {
 export async function deleteListingRemote(id: string): Promise<void> {
   const res = await fetch(`/api/listings/${encodeURIComponent(id)}`, {
     method: "DELETE",
+    credentials: "same-origin",
   });
   const payload = await readJson<ApiOk<Record<string, never>> | ApiErr>(res);
   if (!res.ok || !payload.ok) {
@@ -62,7 +79,10 @@ export async function deleteListingRemote(id: string): Promise<void> {
 }
 
 export async function resetListingsRemote(): Promise<void> {
-  const res = await fetch("/api/listings/reset", { method: "POST" });
+  const res = await fetch("/api/listings/reset", {
+    method: "POST",
+    credentials: "same-origin",
+  });
   const payload = await readJson<ApiOk<Record<string, never>> | ApiErr>(res);
   if (!res.ok || !payload.ok) {
     throw new Error(errorFromResponse(payload, "Failed to reset listings."));
