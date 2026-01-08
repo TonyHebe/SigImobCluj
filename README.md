@@ -54,6 +54,19 @@ Set these environment variables in your deploy (e.g. Vercel Project Settings →
 - `SMTP_FROM` (optional)
 - `CONTACT_RECIPIENT` (optional; defaults to `jessicapana9@gmail.com`)
 
+### Listings database (optional)
+
+The public listings pages (`/listari`, `/oferte/...`) can run **without** a database by using the default listings in `src/lib/listings.ts`.
+
+If you want the **Admin → Oferte** area to persist edits (add/edit/delete offers), configure MongoDB:
+
+- `MONGODB_URI` (required for admin editing)
+- `MONGODB_DB` (optional; defaults to the database in the connection string)
+
+Local: create `.env.local` with the variables above.
+
+Vercel: Project → Settings → Environment Variables → add the variables → redeploy.
+
 ### Tech
 
 Next.js App Router + TypeScript + Tailwind.

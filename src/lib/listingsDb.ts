@@ -10,6 +10,11 @@ type ListingDoc = Listing & {
   updatedAt: Date;
 };
 
+function hasMongoConfig() {
+  const uri = process.env.MONGODB_URI;
+  return Boolean(uri && uri.trim());
+}
+
 function getDbName(): string | undefined {
   const raw = process.env.MONGODB_DB;
   const trimmed = raw?.trim();
@@ -57,6 +62,9 @@ async function seedListingsIfEmpty() {
 }
 
 export async function getAllListings(): Promise<Listing[]> {
+  // If MongoDB isn't configured (common in simple deployments), fall back to
+  // the static listings so public pages still work.
+  if (!hasMongoConfig()) return [...featuredListings];
   await seedListingsIfEmpty();
   const col = await getListingsCollection();
   const docs = await col.find({}).sort({ updatedAt: -1, _id: 1 }).toArray();
@@ -64,6 +72,9 @@ export async function getAllListings(): Promise<Listing[]> {
 }
 
 export async function getListingById(id: string): Promise<Listing | null> {
+  if (!hasMongoConfig()) {
+    return featuredListings.find((l) => l.id === id) ?? null;
+  }
   await seedListingsIfEmpty();
   const col = await getListingsCollection();
   const doc = await col.findOne({ _id: id });
@@ -71,6 +82,11 @@ export async function getListingById(id: string): Promise<Listing | null> {
 }
 
 export async function upsertListing(listing: Listing): Promise<Listing> {
+  if (!hasMongoConfig()) {
+    throw new Error(
+      "MongoDB is not configured (missing MONGODB_URI). Admin edits require a database.",
+    );
+  }
   await seedListingsIfEmpty();
   const col = await getListingsCollection();
 
@@ -94,12 +110,22 @@ export async function upsertListing(listing: Listing): Promise<Listing> {
 }
 
 export async function deleteListingById(id: string): Promise<boolean> {
+  if (!hasMongoConfig()) {
+    throw new Error(
+      "MongoDB is not configured (missing MONGODB_URI). Admin deletes require a database.",
+    );
+  }
   const col = await getListingsCollection();
   const res = await col.deleteOne({ _id: id });
   return res.deletedCount === 1;
 }
 
 export async function resetListingsToDefaults(): Promise<number> {
+  if (!hasMongoConfig()) {
+    throw new Error(
+      "MongoDB is not configured (missing MONGODB_URI). Reset requires a database.",
+    );
+  }
   const col = await getListingsCollection();
   await col.deleteMany({});
 
