@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { verifyPassword } from "@/lib/password";
+import { toPublicApiError } from "@/lib/serverErrors";
 import { getUserByEmail } from "@/lib/usersDb";
 
 export const runtime = "nodejs";
@@ -108,8 +109,11 @@ export async function POST(request: Request) {
     setAuthCookies(res, { role, email });
     return res;
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    console.error("[auth/login] failed", err);
+    const { status, body } = toPublicApiError(err, {
+      fallbackMessage: "Unable to log in right now.",
+    });
+    return NextResponse.json(body, { status });
   }
 }
 

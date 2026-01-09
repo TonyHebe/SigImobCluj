@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { hashPassword } from "@/lib/password";
+import { toPublicApiError } from "@/lib/serverErrors";
 import { createUser } from "@/lib/usersDb";
 
 export const runtime = "nodejs";
@@ -82,8 +83,11 @@ export async function POST(request: Request) {
     setAuthCookies(res, { role: "user", email });
     return res;
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    console.error("[auth/signup] failed", err);
+    const { status, body } = toPublicApiError(err, {
+      fallbackMessage: "Unable to create account right now.",
+    });
+    return NextResponse.json(body, { status });
   }
 }
 

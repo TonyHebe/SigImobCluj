@@ -1,5 +1,7 @@
 import { MongoClient } from "mongodb";
 
+import { MongoConfigError } from "@/lib/serverErrors";
+
 declare global {
   var __mongoClientPromise: Promise<MongoClient> | undefined;
 }
@@ -7,9 +9,12 @@ declare global {
 export function getMongoClientPromise(): Promise<MongoClient> {
   const uri = process.env.MONGODB_URI;
   if (!uri || !uri.trim()) {
-    throw new Error(
-      "Missing MONGODB_URI. Set it in .env.local (local) or Vercel env vars.",
-    );
+    if (process.env.NODE_ENV !== "production") {
+      throw new Error(
+        "Missing MONGODB_URI. Set it in .env.local (local) or Vercel env vars.",
+      );
+    }
+    throw new MongoConfigError();
   }
 
   // Cache the connection across hot reloads in dev.
