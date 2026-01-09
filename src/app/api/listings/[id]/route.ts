@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { deleteListingById, getListingById } from "@/lib/listingsDb";
+import { toPublicApiError } from "@/lib/serverErrors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,8 +30,11 @@ export async function GET(
     }
     return NextResponse.json({ ok: true, listing });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    console.error("[listings/:id] GET failed", err);
+    const { status, body } = toPublicApiError(err, {
+      fallbackMessage: "Unable to load listing right now.",
+    });
+    return NextResponse.json(body, { status });
   }
 }
 
@@ -57,8 +61,11 @@ export async function DELETE(
     }
     return NextResponse.json({ ok: true });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    console.error("[listings/:id] DELETE failed", err);
+    const { status, body } = toPublicApiError(err, {
+      fallbackMessage: "Unable to delete listing right now.",
+    });
+    return NextResponse.json(body, { status });
   }
 }
 

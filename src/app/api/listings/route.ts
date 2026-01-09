@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import type { Listing } from "@/lib/listings";
 import { getAllListings, upsertListing } from "@/lib/listingsDb";
+import { toPublicApiError } from "@/lib/serverErrors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -48,8 +49,11 @@ export async function GET() {
     const listings = await getAllListings();
     return NextResponse.json({ ok: true, listings });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    console.error("[listings] GET failed", err);
+    const { status, body } = toPublicApiError(err, {
+      fallbackMessage: "Unable to load listings right now.",
+    });
+    return NextResponse.json(body, { status });
   }
 }
 
@@ -74,8 +78,11 @@ export async function POST(req: NextRequest) {
     const listing = await upsertListing(body);
     return NextResponse.json({ ok: true, listing });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    console.error("[listings] POST failed", err);
+    const { status, body } = toPublicApiError(err, {
+      fallbackMessage: "Unable to save listing right now.",
+    });
+    return NextResponse.json(body, { status });
   }
 }
 

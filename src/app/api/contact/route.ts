@@ -34,6 +34,17 @@ class SmtpConfigError extends Error {
   }
 }
 
+function toProdSafeMessage(
+  err: unknown,
+  fallback: string,
+): { status: number; body: { ok: false; error: string } } {
+  if (process.env.NODE_ENV !== "production") {
+    const message = err instanceof Error ? err.message : String(err);
+    return { status: 500, body: { ok: false, error: message } };
+  }
+  return { status: 500, body: { ok: false, error: fallback } };
+}
+
 function getEnv(name: string): string | undefined {
   const v = process.env[name];
   if (!v) return undefined;
@@ -253,8 +264,8 @@ export async function POST(req: NextRequest) {
       requestId,
       error: serializeMailError(err),
     });
-    const message = err instanceof Error ? err.message : "Failed to send message.";
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    const safe = toProdSafeMessage(err, "Failed to send message.");
+    return NextResponse.json(safe.body, { status: safe.status });
   }
 }
 

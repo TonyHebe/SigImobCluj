@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { resetListingsToDefaults } from "@/lib/listingsDb";
+import { toPublicApiError } from "@/lib/serverErrors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,8 +27,11 @@ export async function POST() {
     const inserted = await resetListingsToDefaults();
     return NextResponse.json({ ok: true, inserted });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    console.error("[listings/reset] POST failed", err);
+    const { status, body } = toPublicApiError(err, {
+      fallbackMessage: "Unable to reset listings right now.",
+    });
+    return NextResponse.json(body, { status });
   }
 }
 

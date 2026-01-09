@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { getMongoClientPromise } from "@/lib/mongodb";
+import { toPublicApiError } from "@/lib/serverErrors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,8 +16,12 @@ export async function GET() {
       ping: result.ok,
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json({ ok: false, error: message }, { status: 500 });
+    console.error("[db/ping] failed", err);
+    const { status, body } = toPublicApiError(err, {
+      fallbackMessage: "Database unavailable.",
+      fallbackStatus: 503,
+    });
+    return NextResponse.json(body, { status });
   }
 }
 
