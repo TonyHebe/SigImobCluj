@@ -112,7 +112,12 @@ export default function ContactPage() {
               Trimite un mesaj
             </div>
             <ContactMessageForm />
-            <ReviewsCarousel />
+          </div>
+
+          <div className="lg:col-span-2">
+            <div className="mx-auto mt-2 w-full max-w-3xl">
+              <ReviewsCarousel />
+            </div>
           </div>
         </section>
       </main>
