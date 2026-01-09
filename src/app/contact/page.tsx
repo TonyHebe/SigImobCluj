@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { ContactMessageForm } from "@/components/ContactMessageForm";
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
+import { ReviewsCarousel } from "@/components/ReviewsCarousel";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 
 export const metadata: Metadata = {
@@ -111,6 +112,7 @@ export default function ContactPage() {
               Trimite un mesaj
             </div>
             <ContactMessageForm />
+            <ReviewsCarousel />
           </div>
         </section>
       </main>
