@@ -88,7 +88,7 @@ export function ReviewsCarousel() {
   }
 
   return (
-    <section className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+    <section className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-sm font-semibold text-slate-900">Recenzii</div>
