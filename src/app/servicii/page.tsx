@@ -4,6 +4,7 @@ import { join } from "node:path";
 import Image from "next/image";
 import Link from "next/link";
 
+import { BrandMark } from "@/components/BrandMark";
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 
@@ -80,18 +81,7 @@ export default function ServiciiPage() {
       <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-3 sm:px-6">
           <HomeLinkScrollTop className="group inline-flex items-center gap-2">
-            <span className="inline-flex size-9 items-center justify-center rounded-xl bg-sky-600 text-white shadow-sm">
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 24 24"
-                className="size-5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-6v-7H10v7H4a1 1 0 0 1-1-1v-10.5Z" />
-              </svg>
-            </span>
+            <BrandMark className="size-9" />
             <div className="leading-tight">
               <div className="text-sm font-semibold tracking-tight text-slate-900">
                 Sig Imobiliare Cluj
