@@ -9,6 +9,10 @@ export const metadata: Metadata = {
   description:
     "Sig Imobiliare Cluj – agenție imobiliară în Cluj-Napoca. Apartamente, case și terenuri de vânzare sau închiriere.",
   applicationName: "Sig Imobiliare Cluj",
+  icons: {
+    icon: "/brand/sig-imob-cluj.svg",
+    apple: "/brand/sig-imob-cluj.svg",
+  },
   metadataBase: new URL("https://example.com"),
   openGraph: {
     title: "Sig Imobiliare Cluj",
