@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -55,6 +56,7 @@ export async function DELETE(
         { status: 404 },
       );
     }
+    revalidateTag("listings", "default");
     return NextResponse.json({ ok: true });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

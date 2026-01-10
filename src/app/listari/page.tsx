@@ -1,4 +1,5 @@
 import { ListariClientPage } from "@/app/listari/ListariClient";
+import { getCachedListings } from "@/lib/listingsCache.server";
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
@@ -36,6 +37,10 @@ export default async function ListariPage({ searchParams }: PageProps) {
   };
   const page = getSearchParamInt(resolvedSearchParams, "page", 1);
 
-  return <ListariClientPage filters={filters} page={page} />;
+  const initialListings = await getCachedListings();
+
+  return (
+    <ListariClientPage filters={filters} page={page} initialListings={initialListings} />
+  );
 }
 

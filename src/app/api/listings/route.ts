@@ -1,12 +1,13 @@
 import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import type { Listing } from "@/lib/listings";
-import { getAllListings, upsertListing } from "@/lib/listingsDb";
+import { getCachedListings } from "@/lib/listingsCache.server";
+import { upsertListing } from "@/lib/listingsDb";
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 async function isAdminRequest() {
   // Next 16: `cookies()` is async.
@@ -45,8 +46,16 @@ function isListingLike(value: unknown): value is Listing {
 
 export async function GET() {
   try {
-    const listings = await getAllListings();
-    return NextResponse.json({ ok: true, listings });
+    const listings = await getCachedListings();
+    return NextResponse.json(
+      { ok: true, listings },
+      {
+        headers: {
+          // Cache at the edge/CDN when available; still safe because GET is public.
+          "Cache-Control": "public, max-age=0, s-maxage=60, stale-while-revalidate=300",
+        },
+      },
+    );
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json({ ok: false, error: message }, { status: 500 });
@@ -72,6 +81,7 @@ export async function POST(req: NextRequest) {
     }
 
     const listing = await upsertListing(body);
+    revalidateTag("listings", "default");
     return NextResponse.json({ ok: true, listing });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
