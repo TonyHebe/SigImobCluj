@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { resetListingsToDefaults } from "@/lib/listingsDb";
@@ -24,6 +25,7 @@ export async function POST() {
     }
 
     const inserted = await resetListingsToDefaults();
+    revalidateTag("listings", "default");
     return NextResponse.json({ ok: true, inserted });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

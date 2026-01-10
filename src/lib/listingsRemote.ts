@@ -24,7 +24,6 @@ function errorFromResponse(payload: unknown, fallback: string) {
 export async function fetchListings(options?: FetchOptions): Promise<Listing[]> {
   const res = await fetch("/api/listings", {
     method: "GET",
-    cache: "no-store",
     credentials: "same-origin",
     signal: options?.signal,
   });
@@ -41,7 +40,6 @@ export async function fetchListing(
 ): Promise<Listing | null> {
   const res = await fetch(`/api/listings/${encodeURIComponent(id)}`, {
     method: "GET",
-    cache: "no-store",
     credentials: "same-origin",
     signal: options?.signal,
   });

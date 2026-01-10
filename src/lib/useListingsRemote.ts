@@ -19,7 +19,7 @@ export function useListingsRemote(options?: {
   const initial = useMemo(() => options?.initial ?? [], [options?.initial]);
 
   const [listings, setListings] = useState<Listing[]>(initial);
-  const [isLoading, setIsLoading] = useState<boolean>(enabled);
+  const [isLoading, setIsLoading] = useState<boolean>(enabled && initial.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [refreshToken, setRefreshToken] = useState(0);
 
@@ -40,7 +40,9 @@ export function useListingsRemote(options?: {
     const controller = new AbortController();
     let cancelled = false;
 
-    setIsLoading(true);
+    // Only show an "initial loading" state when we have no data yet.
+    // When `initial` listings are provided (SSR), we treat refresh as background.
+    if (listings.length === 0) setIsLoading(true);
     setError(null);
 
     void (async () => {
@@ -63,6 +65,7 @@ export function useListingsRemote(options?: {
       cancelled = true;
       controller.abort();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, refreshToken]);
 
   return { listings, isLoading, error, refetch };

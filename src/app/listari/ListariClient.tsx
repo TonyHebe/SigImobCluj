@@ -213,6 +213,7 @@ function getPageNumbers(current: number, total: number) {
 export function ListariClientPage({
   filters,
   page,
+  initialListings,
 }: {
   filters: {
     propertyType: string;
@@ -221,6 +222,7 @@ export function ListariClientPage({
     id: string;
   };
   page: number;
+  initialListings: Listing[];
 }) {
   const router = useRouter();
   const auth = (() => {
@@ -232,7 +234,9 @@ export function ListariClientPage({
   })();
 
   const isAdmin = auth.isAuthed && auth.role === "admin";
-  const { listings, isLoading, error, refetch } = useListingsRemote();
+  const { listings, isLoading, error, refetch } = useListingsRemote({
+    initial: initialListings,
+  });
   const [deleteBusyId, setDeleteBusyId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -389,9 +393,13 @@ export function ListariClientPage({
             {deleteError ?? error}
           </div>
         ) : null}
-        {isLoading ? (
+        {isLoading && listings.length === 0 ? (
           <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
             Se încarcă ofertele…
+          </div>
+        ) : isLoading ? (
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm">
+            Se actualizează ofertele…
           </div>
         ) : null}
 
