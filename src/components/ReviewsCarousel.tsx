@@ -98,7 +98,7 @@ export function ReviewsCarousel() {
             </span>
             <Stars rating={current.rating} labelId={labelId} />
             <span className="text-xs text-slate-500">
-              {index + 1}/{reviews.length}
+              {current.rating}/5 stele
             </span>
           </div>
         </div>

@@ -230,15 +230,6 @@ export function LoginPageClient({ nextPath }: { nextPath: string }) {
               <span className="font-semibold text-slate-700">{nextPath}</span>.
             </div>
           </form>
-
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-4 text-xs text-slate-600">
-            <div className="font-semibold text-slate-900">Admin setup</div>
-            <div className="mt-1">
-              Set <span className="font-semibold">ADMIN_KEY</span> (recommended) or{" "}
-              <span className="font-semibold">NEXT_PUBLIC_ADMIN_KEY</span> in your
-              environment to configure the admin key.
-            </div>
-          </div>
         </div>
       </div>
     </div>
