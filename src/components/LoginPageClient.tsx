@@ -236,8 +236,7 @@ export function LoginPageClient({ nextPath }: { nextPath: string }) {
             <div className="mt-1">
               Set <span className="font-semibold">ADMIN_KEY</span> (recommended) or{" "}
               <span className="font-semibold">NEXT_PUBLIC_ADMIN_KEY</span> in your
-              environment to change the admin key (default is{" "}
-              <span className="font-semibold">123456</span>).
+              environment to configure the admin key.
             </div>
           </div>
         </div>
