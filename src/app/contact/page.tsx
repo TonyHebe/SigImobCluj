@@ -35,9 +35,9 @@ export default function ContactPage() {
             <ScrollTopLink className="hover:text-slate-900" href="/listari">
               Listări
             </ScrollTopLink>
-            <Link className="hover:text-slate-900" href="/servicii">
+            <ScrollTopLink className="hover:text-slate-900" href="/servicii">
               Echipa
-            </Link>
+            </ScrollTopLink>
             <Link className="font-semibold text-slate-900" href="/contact">
               Contact
             </Link>
