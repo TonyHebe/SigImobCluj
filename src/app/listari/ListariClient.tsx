@@ -7,12 +7,14 @@ import { useRouter } from "next/navigation";
 
 import { BrandMark } from "@/components/BrandMark";
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
+import { ListingsMapCard } from "@/components/ListingsMapCard";
 import { QuickRequestForm } from "@/components/QuickRequestForm";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { getAuthSnapshot } from "@/lib/authClient";
 import type { Listing } from "@/lib/listings";
 import { deleteListingRemote } from "@/lib/listingsRemote";
 import { useListingsRemote } from "@/lib/useListingsRemote";
+import type { SimpleBounds } from "@/components/ListingsMapClient";
 
 function normalizeText(value: string) {
   return value
@@ -210,6 +212,12 @@ function getPageNumbers(current: number, total: number) {
   return out;
 }
 
+function boundsContains(bounds: SimpleBounds, lat: number, lng: number) {
+  const latitudeOk = lat >= bounds.south && lat <= bounds.north;
+  const longitudeOk = lng >= bounds.west && lng <= bounds.east;
+  return latitudeOk && longitudeOk;
+}
+
 export function ListariClientPage({
   filters,
   page,
@@ -239,6 +247,9 @@ export function ListariClientPage({
   });
   const [deleteBusyId, setDeleteBusyId] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [mapBounds, setMapBounds] = useState<SimpleBounds | null>(null);
+  const [areaBounds, setAreaBounds] = useState<SimpleBounds | null>(null);
+  const [mapKey, setMapKey] = useState(0);
 
   const active = useMemo(() => hasActiveFilters(filters), [filters]);
 
@@ -275,10 +286,18 @@ export function ListariClientPage({
     return listings.filter((l) => l.kind !== "land");
   }, [active, filtered, listings]);
 
+  const baseWithArea = useMemo(() => {
+    if (!areaBounds) return base;
+    return base.filter((l) => {
+      if (!l.location) return false;
+      return boundsContains(areaBounds, l.location.lat, l.location.lng);
+    });
+  }, [areaBounds, base]);
+
   const totalPages = useMemo(() => {
-    if (!base.length) return 1;
-    return Math.max(1, Math.ceil(base.length / PAGE_SIZE));
-  }, [base.length]);
+    if (!baseWithArea.length) return 1;
+    return Math.max(1, Math.ceil(baseWithArea.length / PAGE_SIZE));
+  }, [baseWithArea.length]);
 
   const currentPage = useMemo(() => {
     const p = Number.isFinite(page) ? Math.floor(page) : 1;
@@ -301,8 +320,8 @@ export function ListariClientPage({
 
   const pageSlice = useMemo(() => {
     const start = (currentPage - 1) * PAGE_SIZE;
-    return base.slice(start, start + PAGE_SIZE);
-  }, [base, currentPage]);
+    return baseWithArea.slice(start, start + PAGE_SIZE);
+  }, [baseWithArea, currentPage]);
 
   const apartments = useMemo(
     () => pageSlice.filter((l) => l.kind === "apartment"),
@@ -419,14 +438,72 @@ export function ListariClientPage({
               </span>
             </p>
           ) : null}
+          {areaBounds ? (
+            <p className="text-sm text-slate-600">
+              În zonă:{" "}
+              <span className="font-semibold text-slate-900">
+                {baseWithArea.length}
+              </span>
+              <button
+                type="button"
+                className="ml-3 inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                onClick={() => {
+                  setAreaBounds(null);
+                  setMapKey((k) => k + 1);
+                }}
+              >
+                Resetează zona
+              </button>
+            </p>
+          ) : null}
         </div>
+
+        <section className="mt-8">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="text-sm text-slate-600">
+              Trage harta unde vrei și apasă{" "}
+              <span className="font-semibold text-slate-900">Caută în zonă</span>.
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                disabled={!mapBounds}
+                onClick={() => {
+                  if (!mapBounds) return;
+                  setAreaBounds(mapBounds);
+                }}
+              >
+                Caută în zonă
+              </button>
+              <button
+                type="button"
+                className="inline-flex h-10 items-center justify-center rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-900 shadow-sm hover:bg-slate-50"
+                onClick={() => {
+                  setAreaBounds(null);
+                  setMapKey((k) => k + 1);
+                }}
+              >
+                Centrează pe pin-uri
+              </button>
+            </div>
+          </div>
+          <div className="mt-4">
+            <ListingsMapCard
+              listings={areaBounds ? baseWithArea : base}
+              onBoundsChange={setMapBounds}
+              fitToPoints
+              mapKey={mapKey}
+            />
+          </div>
+        </section>
 
         {active ? (
           <section className="mt-10">
             <h2 className="text-balance text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
               Rezultate
             </h2>
-            {base.length ? (
+            {baseWithArea.length ? (
               <div className="mt-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {pageSlice.map((l) => (
                   <ListingCard
@@ -461,7 +538,7 @@ export function ListariClientPage({
               </div>
             )}
 
-            {base.length > PAGE_SIZE ? (
+            {baseWithArea.length > PAGE_SIZE ? (
               <div className="mt-8 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="text-sm text-slate-600">
                   Pagina{" "}
@@ -611,7 +688,7 @@ export function ListariClientPage({
               )}
             </section>
 
-            {base.length > PAGE_SIZE ? (
+            {baseWithArea.length > PAGE_SIZE ? (
               <div className="mt-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="text-sm text-slate-600">
                   Pagina{" "}
