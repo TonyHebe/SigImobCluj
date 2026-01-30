@@ -33,6 +33,23 @@ function isListingImage(value: unknown): value is Listing["images"][number] {
   return typeof v.src === "string" && typeof v.alt === "string";
 }
 
+function isFiniteNumber(n: unknown): n is number {
+  return typeof n === "number" && Number.isFinite(n);
+}
+
+function isListingLocation(value: unknown): value is NonNullable<Listing["location"]> {
+  if (!value || typeof value !== "object") return false;
+  const v = value as Record<string, unknown>;
+  if (typeof v.label !== "string" || !v.label.trim()) return false;
+  if (!isFiniteNumber(v.lat) || v.lat < -90 || v.lat > 90) return false;
+  if (!isFiniteNumber(v.lng) || v.lng < -180 || v.lng > 180) return false;
+  if (v.radiusMeters !== undefined) {
+    if (!isFiniteNumber(v.radiusMeters)) return false;
+    if (v.radiusMeters <= 0) return false;
+  }
+  return true;
+}
+
 function isListing(value: unknown): value is Listing {
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
@@ -50,6 +67,10 @@ function isListing(value: unknown): value is Listing {
 
   if (!Array.isArray(v.images) || v.images.length < 1) return false;
   if (!v.images.every(isListingImage)) return false;
+
+  if (v.location !== undefined && v.location !== null) {
+    if (!isListingLocation(v.location)) return false;
+  }
 
   return true;
 }

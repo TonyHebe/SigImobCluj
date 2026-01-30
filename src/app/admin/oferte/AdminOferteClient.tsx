@@ -27,6 +27,10 @@ type DraftListing = {
   title: string;
   subtitle: string;
   price: string;
+  locationLabel: string;
+  locationLat: string;
+  locationLng: string;
+  locationRadiusMeters: string;
   detailsText: string;
   description: string;
   images: DraftImage[];
@@ -61,6 +65,11 @@ function listingToDraft(l: Listing): DraftListing {
     title: l.title,
     subtitle: l.subtitle,
     price: l.price,
+    locationLabel: l.location?.label ?? "",
+    locationLat: l.location ? String(l.location.lat) : "",
+    locationLng: l.location ? String(l.location.lng) : "",
+    locationRadiusMeters:
+      l.location?.radiusMeters != null ? String(l.location.radiusMeters) : "",
     detailsText: detailsToText(l.details),
     description: l.description,
     images: l.images.map((img) => ({ src: img.src, alt: img.alt })),
@@ -75,6 +84,10 @@ function emptyDraft(): DraftListing {
     title: "",
     subtitle: "",
     price: "",
+    locationLabel: "",
+    locationLat: "",
+    locationLng: "",
+    locationRadiusMeters: "",
     detailsText: "",
     description: "",
     images: [{ src: "", alt: "" }],
@@ -196,6 +209,45 @@ export function AdminOferteClient() {
       return;
     }
 
+    const locLabel = draft.locationLabel.trim();
+    const locLatRaw = draft.locationLat.trim();
+    const locLngRaw = draft.locationLng.trim();
+    const locRadiusRaw = draft.locationRadiusMeters.trim();
+    const anyLocField = Boolean(locLabel || locLatRaw || locLngRaw || locRadiusRaw);
+
+    let location: Listing["location"] | undefined = undefined;
+    if (anyLocField) {
+      const lat = Number(locLatRaw);
+      const lng = Number(locLngRaw);
+      const radiusMeters = locRadiusRaw ? Number(locRadiusRaw) : undefined;
+
+      if (!locLabel) {
+        setError("Completează localitatea (ex: Cluj-Napoca, Zorilor).");
+        return;
+      }
+      if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
+        setError("Latitudine invalidă (ex: 46.77).");
+        return;
+      }
+      if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
+        setError("Longitudine invalidă (ex: 23.62).");
+        return;
+      }
+      if (radiusMeters !== undefined) {
+        if (!Number.isFinite(radiusMeters) || radiusMeters <= 0) {
+          setError("Raza trebuie să fie un număr pozitiv (metri).");
+          return;
+        }
+      }
+
+      location = {
+        label: locLabel,
+        lat,
+        lng,
+        ...(radiusMeters !== undefined ? { radiusMeters } : null),
+      };
+    }
+
     const listing: Listing = {
       id,
       kind: draft.kind,
@@ -209,6 +261,7 @@ export function AdminOferteClient() {
         src: img.src,
         alt: img.alt || title,
       })),
+      ...(location ? { location } : null),
     };
 
     setIsBusy(true);
@@ -422,6 +475,70 @@ export function AdminOferteClient() {
                   className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
                 />
               </label>
+
+              <div className="grid gap-2 text-sm sm:col-span-2">
+                <div className="font-semibold text-slate-900">
+                  Locație (aproximativă) pentru hartă
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <label className="grid gap-1 text-sm sm:col-span-2">
+                    <span className="text-slate-700">Localitate / zonă</span>
+                    <input
+                      value={draft.locationLabel}
+                      onChange={(e) =>
+                        setDraft((d) => ({ ...d, locationLabel: e.target.value }))
+                      }
+                      placeholder="Cluj-Napoca, Zorilor"
+                      className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                    />
+                  </label>
+
+                  <label className="grid gap-1 text-sm">
+                    <span className="text-slate-700">Latitudine</span>
+                    <input
+                      inputMode="decimal"
+                      value={draft.locationLat}
+                      onChange={(e) =>
+                        setDraft((d) => ({ ...d, locationLat: e.target.value }))
+                      }
+                      placeholder="46.77"
+                      className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                    />
+                  </label>
+
+                  <label className="grid gap-1 text-sm">
+                    <span className="text-slate-700">Longitudine</span>
+                    <input
+                      inputMode="decimal"
+                      value={draft.locationLng}
+                      onChange={(e) =>
+                        setDraft((d) => ({ ...d, locationLng: e.target.value }))
+                      }
+                      placeholder="23.62"
+                      className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                    />
+                  </label>
+
+                  <label className="grid gap-1 text-sm">
+                    <span className="text-slate-700">Rază (metri)</span>
+                    <input
+                      inputMode="numeric"
+                      value={draft.locationRadiusMeters}
+                      onChange={(e) =>
+                        setDraft((d) => ({
+                          ...d,
+                          locationRadiusMeters: e.target.value,
+                        }))
+                      }
+                      placeholder="900"
+                      className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
+                    />
+                    <span className="text-xs text-slate-500">
+                      Păstrează locația aproximativă (nu adresă exactă).
+                    </span>
+                  </label>
+                </div>
+              </div>
 
               <label className="grid gap-1 text-sm">
                 <span className="font-semibold text-slate-900">
