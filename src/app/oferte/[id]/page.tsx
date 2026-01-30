@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 
 import { BrandMark } from "@/components/BrandMark";
 import { HomeLinkScrollTop } from "@/components/HomeLinkScrollTop";
+import { ListingLocationCard } from "@/components/ListingLocationCard";
 import { ScrollTopLink } from "@/components/ScrollTopLink";
 import { getAuthSnapshot } from "@/lib/authClient";
 import { useListingRemote } from "@/lib/useListingsRemote";
@@ -205,6 +206,12 @@ export default function OfferDetailsPage() {
                     Notă: ofertele sunt încărcate din baza de date.
                   </div>
                 </div>
+
+                {listing.location ? (
+                  <div className="mt-6">
+                    <ListingLocationCard location={listing.location} />
+                  </div>
+                ) : null}
               </aside>
             </div>
           </>

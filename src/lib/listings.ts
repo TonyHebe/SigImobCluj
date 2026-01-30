@@ -1,3 +1,14 @@
+export type ListingLocation = {
+  /** Human-readable label (ex: "Cluj-Napoca, Zorilor") */
+  label: string;
+  /** Approximate latitude (not exact address). */
+  lat: number;
+  /** Approximate longitude (not exact address). */
+  lng: number;
+  /** Optional uncertainty radius around the point. */
+  radiusMeters?: number;
+};
+
 export type Listing = {
   id: string;
   kind: "apartment" | "house" | "land";
@@ -11,6 +22,7 @@ export type Listing = {
     src: string;
     alt: string;
   }[];
+  location?: ListingLocation;
 };
 
 export const featuredListings = [
@@ -38,6 +50,12 @@ export const featuredListings = [
         alt: "Dormitor amenajat modern",
       },
     ],
+    location: {
+      label: "Cluj-Napoca, Zorilor",
+      lat: 46.7529,
+      lng: 23.6037,
+      radiusMeters: 900,
+    },
   },
   {
     id: "casa-faget",
@@ -63,6 +81,12 @@ export const featuredListings = [
         alt: "Detalii interioare premium",
       },
     ],
+    location: {
+      label: "Cluj-Napoca, Făget",
+      lat: 46.7279,
+      lng: 23.6076,
+      radiusMeters: 1400,
+    },
   },
   {
     id: "apt-gheorgheni",
@@ -88,6 +112,12 @@ export const featuredListings = [
         alt: "Spațiu de lucru și living luminos",
       },
     ],
+    location: {
+      label: "Cluj-Napoca, Gheorgheni",
+      lat: 46.7733,
+      lng: 23.6464,
+      radiusMeters: 1100,
+    },
   },
   {
     id: "studio-marasti",
@@ -113,6 +143,12 @@ export const featuredListings = [
         alt: "Pat și zonă de odihnă într-un studio",
       },
     ],
+    location: {
+      label: "Cluj-Napoca, Mărăști",
+      lat: 46.7845,
+      lng: 23.6237,
+      radiusMeters: 1100,
+    },
   },
   {
     id: "teren-someseni",
@@ -138,6 +174,12 @@ export const featuredListings = [
         alt: "Vegetatie și teren în lumină naturală",
       },
     ],
+    location: {
+      label: "Cluj-Napoca, Someșeni",
+      lat: 46.7847,
+      lng: 23.6933,
+      radiusMeters: 1700,
+    },
   },
   {
     id: "penthouse-centru",
@@ -163,6 +205,12 @@ export const featuredListings = [
         alt: "Living modern cu spațiu generos",
       },
     ],
+    location: {
+      label: "Cluj-Napoca, Centru",
+      lat: 46.7712,
+      lng: 23.6236,
+      radiusMeters: 900,
+    },
   },
 ] as const satisfies readonly Listing[];
 

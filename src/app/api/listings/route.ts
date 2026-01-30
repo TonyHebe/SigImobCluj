@@ -18,6 +18,22 @@ async function isAdminRequest() {
 }
 
 function isListingLike(value: unknown): value is Listing {
+  const isFiniteNumber = (n: unknown): n is number =>
+    typeof n === "number" && Number.isFinite(n);
+
+  const isLocationLike = (loc: unknown): boolean => {
+    if (!loc || typeof loc !== "object") return false;
+    const l = loc as Record<string, unknown>;
+    if (typeof l.label !== "string" || !l.label.trim()) return false;
+    if (!isFiniteNumber(l.lat) || l.lat < -90 || l.lat > 90) return false;
+    if (!isFiniteNumber(l.lng) || l.lng < -180 || l.lng > 180) return false;
+    if (l.radiusMeters !== undefined) {
+      if (!isFiniteNumber(l.radiusMeters)) return false;
+      if (l.radiusMeters <= 0) return false;
+    }
+    return true;
+  };
+
   if (!value || typeof value !== "object") return false;
   const v = value as Record<string, unknown>;
   const kind = v.kind;
@@ -41,6 +57,11 @@ function isListingLike(value: unknown): value is Listing {
   ) {
     return false;
   }
+
+  if (v.location !== undefined && v.location !== null) {
+    if (!isLocationLike(v.location)) return false;
+  }
+
   return true;
 }
 
