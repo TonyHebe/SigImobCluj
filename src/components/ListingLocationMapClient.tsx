@@ -1,12 +1,34 @@
 "use client";
 
-import { MapContainer, TileLayer, Circle, CircleMarker } from "react-leaflet";
+import type { LatLngExpression } from "leaflet";
+import type React from "react";
+import {
+  MapContainer as ReactLeafletMapContainer,
+  TileLayer,
+  Circle,
+  CircleMarker,
+} from "react-leaflet";
 
 import type { ListingLocation } from "@/lib/listings";
 
 function clampNumber(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
+
+// react-leaflet v5 currently omits `center`/`zoom` from `MapContainerProps` typings,
+// even though the runtime supports them. We narrow it locally to keep TS happy.
+const MapContainer = ReactLeafletMapContainer as unknown as React.ComponentType<{
+  center?: LatLngExpression;
+  zoom?: number;
+  className?: string;
+  attributionControl?: boolean;
+  scrollWheelZoom?: boolean;
+  dragging?: boolean;
+  doubleClickZoom?: boolean;
+  touchZoom?: boolean;
+  zoomControl?: boolean;
+  children?: React.ReactNode;
+}>;
 
 export function ListingLocationMapClient({
   location,
