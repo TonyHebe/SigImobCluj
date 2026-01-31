@@ -123,7 +123,7 @@ export function AdminListingLocationPicker({
           onClick={() => setOpen(true)}
           aria-label="Deschide harta pentru alegere locație"
         >
-          <div className="relative h-28 w-full sm:h-24">
+          <div className="relative z-0 isolate h-28 w-full sm:h-24">
             <LocationPickerMap value={picked} radiusMeters={radius} />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/30 via-slate-950/10 to-transparent p-2 text-left">
               <div className="inline-flex items-center rounded-full bg-white/90 px-2.5 py-1 text-[11px] font-semibold text-slate-900 shadow-sm">
@@ -139,7 +139,7 @@ export function AdminListingLocationPicker({
           role="dialog"
           aria-modal="true"
           aria-labelledby={titleId}
-          className="fixed inset-0 z-50"
+          className="fixed inset-0 z-[2000]"
         >
           <div
             className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
