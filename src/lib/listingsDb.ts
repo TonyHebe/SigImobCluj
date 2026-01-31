@@ -23,10 +23,19 @@ async function getListingsCollection(): Promise<Collection<ListingDoc>> {
   return db.collection<ListingDoc>("listings");
 }
 
+function withDefaultLocationFallback(listing: Listing): Listing {
+  // Backward-compat: older DB documents may predate `Listing.location`.
+  // For the built-in demo listings, infer location from `featuredListings`
+  // so offer detail pages can show the "Localitate" map without requiring a reset.
+  if (listing.location) return listing;
+  const fallback = featuredListings.find((l) => l.id === listing.id)?.location;
+  return fallback ? { ...listing, location: fallback } : listing;
+}
+
 function docToListing(doc: ListingDoc): Listing {
   // Ensure `id` is always consistent with `_id`.
   const { _id, ...rest } = doc;
-  return { ...rest, id: _id };
+  return withDefaultLocationFallback({ ...rest, id: _id });
 }
 
 async function seedListingsIfEmpty() {
