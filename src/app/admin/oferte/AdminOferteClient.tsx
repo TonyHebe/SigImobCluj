@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { ScrollTopLink } from "@/components/ScrollTopLink";
+import { AdminListingLocationPicker } from "@/components/AdminListingLocationPicker";
 import { getAuthSnapshot } from "@/lib/authClient";
 import type { Listing } from "@/lib/listings";
 import {
@@ -493,50 +494,32 @@ export function AdminOferteClient() {
                     />
                   </label>
 
-                  <label className="grid gap-1 text-sm">
-                    <span className="text-slate-700">Latitudine</span>
-                    <input
-                      inputMode="decimal"
-                      value={draft.locationLat}
-                      onChange={(e) =>
-                        setDraft((d) => ({ ...d, locationLat: e.target.value }))
-                      }
-                      placeholder="46.77"
-                      className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
-                    />
-                  </label>
-
-                  <label className="grid gap-1 text-sm">
-                    <span className="text-slate-700">Longitudine</span>
-                    <input
-                      inputMode="decimal"
-                      value={draft.locationLng}
-                      onChange={(e) =>
-                        setDraft((d) => ({ ...d, locationLng: e.target.value }))
-                      }
-                      placeholder="23.62"
-                      className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
-                    />
-                  </label>
-
-                  <label className="grid gap-1 text-sm">
-                    <span className="text-slate-700">Rază (metri)</span>
-                    <input
-                      inputMode="numeric"
-                      value={draft.locationRadiusMeters}
-                      onChange={(e) =>
+                  <div className="sm:col-span-2">
+                    <AdminListingLocationPicker
+                      label={draft.locationLabel}
+                      lat={draft.locationLat}
+                      lng={draft.locationLng}
+                      radiusMeters={draft.locationRadiusMeters}
+                      onChange={(patch) =>
                         setDraft((d) => ({
                           ...d,
-                          locationRadiusMeters: e.target.value,
+                          ...(patch.lat !== undefined ? { locationLat: patch.lat } : null),
+                          ...(patch.lng !== undefined ? { locationLng: patch.lng } : null),
+                          ...(patch.radiusMeters !== undefined
+                            ? { locationRadiusMeters: patch.radiusMeters }
+                            : null),
                         }))
                       }
-                      placeholder="900"
-                      className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-slate-900 shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-200"
                     />
-                    <span className="text-xs text-slate-500">
-                      Păstrează locația aproximativă (nu adresă exactă).
-                    </span>
-                  </label>
+                    <div className="mt-3 text-xs text-slate-500">
+                      Completează{" "}
+                      <span className="font-semibold text-slate-700">
+                        Localitate / zonă
+                      </span>{" "}
+                      + alege pin-ul pe hartă. Dacă lipsește locația, oferta nu va
+                      afișa harta pe pagina publică.
+                    </div>
+                  </div>
                 </div>
               </div>
 
