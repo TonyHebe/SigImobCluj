@@ -29,9 +29,9 @@ export default function HomePage() {
             <ScrollTopLink className="hover:text-slate-900" href="/listari">
               Listări
             </ScrollTopLink>
-            <Link className="hover:text-slate-900" href="/servicii">
+            <ScrollTopLink className="hover:text-slate-900" href="/servicii">
               Echipa
-            </Link>
+            </ScrollTopLink>
             <Link className="hover:text-slate-900" href="/contact">
               Contact
             </Link>
@@ -272,12 +272,12 @@ export default function HomePage() {
               >
                 Listări
               </ScrollTopLink>
-              <a
+              <ScrollTopLink
                 className="text-slate-600 hover:text-slate-900"
                 href="/servicii"
               >
                 Echipa
-              </a>
+              </ScrollTopLink>
               <Link className="text-slate-600 hover:text-slate-900" href="/contact">
                 Contact
               </Link>
